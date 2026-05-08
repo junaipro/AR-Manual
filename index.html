@@ -1,0 +1,2548 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FCM AR 운영매뉴얼</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #1a2540;
+    --navy-light: #243155;
+    --navy-mid: #2e3e6e;
+    --accent: #4c7ef3;
+    --accent-bright: #6b96ff;
+    --accent-light: #e8effe;
+    --teal: #2dc8a8;
+    --teal-light: #e1f7f3;
+    --amber: #f5a623;
+    --amber-light: #fef3de;
+    --coral: #f06565;
+    --coral-light: #fdeaea;
+    --purple: #8b5cf6;
+    --purple-light: #ede9fe;
+    --green: #34c877;
+    --green-light: #e6faf0;
+    --white: #ffffff;
+    --gray-50: #f8f9fc;
+    --gray-100: #eef0f6;
+    --gray-200: #dde1ee;
+    --gray-400: #9aa3be;
+    --gray-600: #5a6380;
+    --gray-800: #2d3556;
+    --text-primary: #1a2540;
+    --text-secondary: #5a6380;
+    --text-muted: #9aa3be;
+    --border: #dde1ee;
+    --shadow-sm: 0 1px 4px rgba(26,37,64,0.08);
+    --shadow-md: 0 4px 16px rgba(26,37,64,0.12);
+    --shadow-lg: 0 8px 32px rgba(26,37,64,0.16);
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--gray-50);
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* ── TOP HEADER ── */
+  .top-header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 56px;
+    background: var(--navy);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 16px;
+    z-index: 100;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .header-logo {
+    display: flex; align-items: center; gap: 10px;
+    flex: 1;
+  }
+
+  .header-logo .logo-icon {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+
+  .header-logo .logo-text {
+    font-size: 16px; font-weight: 600; color: #fff;
+  }
+
+  .header-logo .logo-sub {
+    font-size: 13px; color: rgba(255,255,255,0.45);
+    margin-left: 4px;
+  }
+
+  .header-version {
+    font-size: 12px; color: rgba(255,255,255,0.4);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .home-btn {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: var(--radius-sm);
+    color: #fff;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-family: 'Noto Sans KR', sans-serif;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    transition: background 0.15s;
+    text-decoration: none;
+  }
+  .home-btn:hover { background: rgba(255,255,255,0.18); }
+  .home-btn svg { width: 15px; height: 15px; }
+
+  /* ── LAYOUT ── */
+  .layout {
+    display: flex;
+    padding-top: 56px;
+    min-height: 100vh;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 280px;
+    min-width: 280px;
+    background: var(--navy);
+    min-height: calc(100vh - 56px);
+    position: fixed;
+    top: 56px; left: 0; bottom: 0;
+    overflow-y: auto;
+    padding: 20px 0 40px;
+  }
+
+  .sidebar-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.28);
+    padding: 0 20px;
+    margin-bottom: 10px;
+  }
+
+  .nav-group { margin-bottom: 4px; }
+
+  .nav-parent {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 20px;
+    cursor: pointer;
+    color: rgba(255,255,255,0.75);
+    font-size: 14px; font-weight: 500;
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .nav-parent:hover { background: rgba(255,255,255,0.05); color: #fff; }
+  .nav-parent.active { background: rgba(76,126,243,0.15); color: #fff; border-left-color: var(--accent); }
+
+  .nav-parent .nav-icon { font-size: 16px; min-width: 20px; }
+  .nav-parent .nav-label { flex: 1; }
+  .nav-parent .nav-arrow {
+    font-size: 11px; color: rgba(255,255,255,0.3);
+    transition: transform 0.2s;
+  }
+  .nav-parent.open .nav-arrow { transform: rotate(90deg); }
+
+  .nav-children {
+    display: none;
+    background: rgba(0,0,0,0.15);
+  }
+  .nav-children.open { display: block; }
+
+  .nav-child {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 20px 7px 42px;
+    cursor: pointer;
+    color: rgba(255,255,255,0.5);
+    font-size: 13px;
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+  }
+  .nav-child:hover { color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.04); }
+  .nav-child.active {
+    color: var(--accent-bright);
+    background: rgba(76,126,243,0.1);
+    border-left-color: var(--accent-bright);
+  }
+  .nav-child .child-icon { font-size: 13px; }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+  /* ── MAIN CONTENT ── */
+  .main {
+    margin-left: 280px;
+    flex: 1;
+    padding: 32px;
+    min-height: calc(100vh - 56px);
+  }
+
+  /* ── HOME / SECTIONS ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* HOME HERO */
+  .hero {
+    background: linear-gradient(135deg, #3a6fd8 0%, #4c85f5 40%, #5b99ff 100%);
+    border-radius: var(--radius-xl);
+    padding: 36px 44px 40px;
+    color: #fff;
+    margin-bottom: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 65%);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -60px; left: 30%;
+    width: 240px; height: 240px;
+    background: radial-gradient(circle, rgba(255,255,255,0.07) 0%, transparent 65%);
+    border-radius: 50%;
+  }
+
+  .hero-badge { display: none; }
+
+  .hero-title {
+    font-size: 26px; font-weight: 700; margin-bottom: 12px;
+    position: relative; z-index: 1;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .hero-desc {
+    font-size: 14px; color: rgba(255,255,255,0.82); line-height: 1.75;
+    max-width: 100%; position: relative; z-index: 1;
+    margin-bottom: 32px;
+  }
+
+  .hero-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    width: 100%;
+    position: relative; z-index: 1;
+  }
+  .hero-stat {
+    background: rgba(255,255,255,0.18);
+    border-radius: var(--radius-lg);
+    padding: 28px 20px;
+    text-align: center;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255,255,255,0.15);
+    transition: background 0.2s;
+  }
+  .hero-stat:hover { background: rgba(255,255,255,0.24); }
+  .hero-stat .stat-num {
+    font-size: 44px; font-weight: 800; color: #fff;
+    display: block; line-height: 1.1;
+    letter-spacing: -1px;
+  }
+  .hero-stat .stat-label {
+    font-size: 13px; color: rgba(255,255,255,0.75);
+    margin-top: 8px; display: block; font-weight: 400;
+  }
+
+  /* HOME CARDS */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .nav-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: var(--shadow-sm);
+  }
+  .nav-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--accent);
+  }
+
+  .nav-card .card-icon {
+    font-size: 28px; margin-bottom: 14px;
+    display: block;
+  }
+  .nav-card .card-title {
+    font-size: 15px; font-weight: 600; color: var(--text-primary);
+    margin-bottom: 8px;
+  }
+  .nav-card .card-desc {
+    font-size: 13px; color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  /* SECTION CONTENT */
+  .section-header {
+    margin-bottom: 28px;
+  }
+  .section-breadcrumb {
+    font-size: 12px; color: var(--text-muted);
+    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .section-breadcrumb span { cursor: pointer; }
+  .section-breadcrumb span:hover { color: var(--accent); }
+  .section-title {
+    font-size: 24px; font-weight: 700; color: var(--text-primary);
+    margin-bottom: 6px;
+  }
+  .section-subtitle {
+    font-size: 14px; color: var(--text-secondary); line-height: 1.6;
+  }
+
+  /* CONTENT CARDS */
+  .content-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .content-card-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--gray-100);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .content-card-header .card-h-icon {
+    width: 36px; height: 36px;
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .content-card-header .card-h-title {
+    font-size: 15px; font-weight: 600; color: var(--text-primary);
+  }
+  .content-card-header .card-h-sub {
+    font-size: 12px; color: var(--text-muted); margin-top: 2px;
+  }
+  .content-card-body { padding: 24px; }
+
+  /* STEPS */
+  .step-list { list-style: none; }
+  .step-item {
+    display: flex; gap: 16px;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .step-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 17px; top: 36px;
+    width: 2px;
+    height: calc(100% - 8px);
+    background: var(--gray-200);
+  }
+  .step-num {
+    width: 34px; height: 34px;
+    background: var(--accent);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 14px; font-weight: 600;
+    flex-shrink: 0; z-index: 1;
+  }
+  .step-content { flex: 1; padding-top: 4px; }
+  .step-content h4 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  .step-content p { font-size: 13px; color: var(--text-secondary); line-height: 1.65; }
+
+  /* TIPS */
+  .tip-box {
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+    margin-bottom: 16px;
+    display: flex; gap: 12px; align-items: flex-start;
+    font-size: 13px; line-height: 1.6;
+  }
+  .tip-box.info { background: var(--accent-light); border-left: 4px solid var(--accent); }
+  .tip-box.warn { background: var(--amber-light); border-left: 4px solid var(--amber); }
+  .tip-box.success { background: var(--green-light); border-left: 4px solid var(--green); }
+  .tip-box.error { background: var(--coral-light); border-left: 4px solid var(--coral); }
+  .tip-box .tip-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .tip-box .tip-body strong { display: block; margin-bottom: 4px; font-size: 13px; }
+
+  /* FIELD TABLE */
+  .field-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .field-table th {
+    background: var(--gray-50);
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .field-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--gray-100);
+    vertical-align: top;
+    color: var(--text-primary);
+    line-height: 1.5;
+  }
+  .field-table tr:last-child td { border-bottom: none; }
+  .field-table tr:hover td { background: var(--gray-50); }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px; font-weight: 500;
+  }
+  .badge.required { background: #fdeaea; color: #c53030; }
+  .badge.optional { background: var(--gray-100); color: var(--gray-600); }
+  .badge.auto { background: var(--green-light); color: #276749; }
+
+  /* MENU PATH */
+  .menu-path {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: var(--navy);
+    border-radius: var(--radius-sm);
+    padding: 8px 14px;
+    margin-bottom: 18px;
+  }
+  .menu-path span {
+    font-size: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: rgba(255,255,255,0.7);
+  }
+  .menu-path .sep { color: rgba(255,255,255,0.25); margin: 0 2px; }
+  .menu-path .current { color: var(--accent-bright); font-weight: 500; }
+
+  /* FLOW DIAGRAM */
+  .flow-container {
+    display: flex; align-items: center; gap: 0;
+    overflow-x: auto; padding: 8px 0;
+    flex-wrap: wrap; gap: 8px;
+  }
+  .flow-box {
+    background: var(--accent-light);
+    border: 1px solid rgba(76,126,243,0.3);
+    border-radius: var(--radius-md);
+    padding: 10px 16px;
+    font-size: 13px; font-weight: 500;
+    color: var(--navy);
+    white-space: nowrap;
+  }
+  .flow-box.teal { background: var(--teal-light); border-color: rgba(45,200,168,0.3); color: #0d5e4e; }
+  .flow-box.amber { background: var(--amber-light); border-color: rgba(245,166,35,0.3); color: #7a4f05; }
+  .flow-box.green { background: var(--green-light); border-color: rgba(52,200,119,0.3); color: #1a6b3f; }
+  .flow-arrow { color: var(--gray-400); font-size: 18px; }
+
+  /* GRID 2 COL */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  /* SCREEN GUIDE */
+  .screen-guide {
+    background: var(--gray-50);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .screen-guide h4 { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--text-primary); }
+
+  /* DIVIDER */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+  h3.sub-heading {
+    font-size: 15px; font-weight: 600;
+    margin: 24px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--gray-100);
+    color: var(--text-primary);
+  }
+
+</style>
+</head>
+<body>
+
+<!-- TOP HEADER -->
+<header class="top-header">
+  <div class="header-logo">
+    <div class="logo-icon">📊</div>
+    <span class="logo-text">FCM AR 운영매뉴얼</span>
+    <span class="logo-sub">Accounts Receivable</span>
+  </div>
+  <button class="home-btn" onclick="goHome()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+    홈
+  </button>
+  <span class="header-version">v1.0 · 2026.04.27</span>
+</header>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-section-label">메뉴 구성</div>
+
+    <div class="nav-group">
+      <div class="nav-parent active" onclick="toggleNav(this, 'home-page')">
+        <span class="nav-icon">📌</span>
+        <span class="nav-label">1. Overview (AR개요)</span>
+        <span class="nav-arrow">▶</span>
+      </div>
+      <div class="nav-children open">
+        <div class="nav-child active" onclick="showPage('home-page', this)">
+          <span class="child-icon">📋</span> 1.1 업무처리 절차
+        </div>
+        <div class="nav-child" onclick="showPage('overview-flow', this)">
+          <span class="child-icon">🔄</span> 1.2 AR 전체 흐름도
+        </div>
+        <div class="nav-child" onclick="showPage('page-revision', this)">
+          <span class="child-icon">📝</span> 1.3 개정 이력
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-parent" onclick="toggleNav(this, null)">
+        <span class="nav-icon">📂</span>
+        <span class="nav-label">2. 업무별 처리방법</span>
+        <span class="nav-arrow">▶</span>
+      </div>
+      <div class="nav-children">
+        <div class="nav-child" onclick="showPage('page-cust', this)">
+          <span class="child-icon">🏢</span> 2.1 고객정보 관리
+        </div>
+        <div class="nav-child" onclick="showPage('page-invoice', this)">
+          <span class="child-icon">📄</span> 2.2 매출 전표 처리
+        </div>
+        <div class="nav-child" onclick="showPage('page-receipt', this)">
+          <span class="child-icon">💰</span> 2.3 수금 처리
+        </div>
+        <div class="nav-child" onclick="showPage('page-apply', this)">
+          <span class="child-icon">🔗</span> 2.4 전표 대사
+        </div>
+        <div class="nav-child" onclick="showPage('page-credit', this)">
+          <span class="child-icon">⚖️</span> 2.5 신용 관리
+        </div>
+        <div class="nav-child" onclick="showPage('page-close', this)">
+          <span class="child-icon">📅</span> 2.6 마감 처리
+        </div>
+        <div class="nav-child" onclick="showPage('page-report', this)">
+          <span class="child-icon">🔍</span> 2.7 조회 및 보고서
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-parent" onclick="toggleNav(this, null)">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-label">3. 시스템 설정</span>
+        <span class="nav-arrow">▶</span>
+      </div>
+      <div class="nav-children">
+        <div class="nav-child" onclick="showPage('page-setup', this)">
+          <span class="child-icon">🔧</span> 3.1 AR 기초 설정
+        </div>
+        <div class="nav-child" onclick="showPage('page-auto', this)">
+          <span class="child-icon">🤖</span> 3.2 자동화 설정
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-parent" onclick="toggleNav(this, null)">
+        <span class="nav-icon">🚨</span>
+        <span class="nav-label">4. 오류 처리</span>
+        <span class="nav-arrow">▶</span>
+      </div>
+      <div class="nav-children">
+        <div class="nav-child" onclick="showPage('page-error', this)">
+          <span class="child-icon">🛠️</span> 4.1 주요 오류 및 해결방법
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-parent" onclick="toggleNav(this, 'page-erd')">
+        <span class="nav-icon">🗂️</span>
+        <span class="nav-label">5. ERD</span>
+        <span class="nav-arrow">▶</span>
+      </div>
+      <div class="nav-children">
+        <div class="nav-child" onclick="showPage('page-erd', this)">
+          <span class="child-icon">📐</span> 5.1 AR 테이블 관계도
+        </div>
+      </div>
+    </div>
+
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ━━━━━━━━ HOME PAGE ━━━━━━━━ -->
+    <div id="home-page" class="page active">
+      <div class="hero">
+        <h1 class="hero-title">📄 FCM AR 운영매뉴얼</h1>
+        <p class="hero-desc">
+          Oracle EBS Accounts Receivable 운영 매뉴얼입니다.<br>
+          좌측 메뉴에서 항목을 선택하거나, 아래 카드를 클릭하여 내용을 확인하세요.
+        </p>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <span class="stat-num">2</span>
+            <span class="stat-label">전체 챕터</span>
+          </div>
+          <div class="hero-stat">
+            <span class="stat-num">19</span>
+            <span class="stat-label">전체 섹션</span>
+          </div>
+          <div class="hero-stat">
+            <span class="stat-num">1.0</span>
+            <span class="stat-label">버전</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="cards-grid">
+        <div class="nav-card" onclick="showPage('home-page')">
+          <span class="card-icon">📌</span>
+          <div class="card-title">1. Overview (AR개요)</div>
+          <div class="card-desc">AR 전체 업무 흐름도 및 주요 용어, 업무처리 절차를 안내합니다.</div>
+        </div>
+        <div class="nav-card" onclick="showPage('page-cust')">
+          <span class="card-icon">🏢</span>
+          <div class="card-title">2.1 고객정보 관리</div>
+          <div class="card-desc">고객 등록, 수금 조건, 세금 코드 등 기준정보를 안내합니다.</div>
+        </div>
+        <div class="nav-card" onclick="showPage('page-invoice')">
+          <span class="card-icon">📄</span>
+          <div class="card-title">2.2 매출 전표 처리</div>
+          <div class="card-desc">인보이스 생성, 수정, 승인 및 전기 처리 방법을 안내합니다.</div>
+        </div>
+        <div class="nav-card" onclick="showPage('page-receipt')">
+          <span class="card-icon">💰</span>
+          <div class="card-title">2.3 수금 처리</div>
+          <div class="card-desc">수금 입력, 자동 적용, 미적용 수금 처리 방법을 안내합니다.</div>
+        </div>
+        <div class="nav-card" onclick="showPage('page-apply')">
+          <span class="card-icon">🔗</span>
+          <div class="card-title">2.4 전표 대사</div>
+          <div class="card-desc">수금과 인보이스 대사, 조정, 잔액 관리 방법을 안내합니다.</div>
+        </div>
+        <div class="nav-card" onclick="showPage('page-credit')">
+          <span class="card-icon">⚖️</span>
+          <div class="card-title">2.5 신용 관리</div>
+          <div class="card-desc">고객 신용 한도 설정, 연체 관리, 독촉장 발행을 안내합니다.</div>
+        </div>
+        <div class="nav-card" onclick="showPage('page-close')">
+          <span class="card-icon">📅</span>
+          <div class="card-title">2.6 마감 처리</div>
+          <div class="card-desc">월마감, 기간 마감, GL 전송 절차를 안내합니다.</div>
+        </div>
+        <div class="nav-card" onclick="showPage('page-report')">
+          <span class="card-icon">🔍</span>
+          <div class="card-title">2.7 조회 및 보고서</div>
+          <div class="card-desc">AR 잔액, 연령 분석, 수금 현황 보고서 조회 방법을 안내합니다.</div>
+        </div>
+      </div>
+
+      <div class="tip-box info">
+        <span class="tip-icon">ℹ️</span>
+        <div class="tip-body">
+          <strong>매뉴얼 사용 방법</strong>
+          좌측 메뉴에서 원하는 섹션을 선택하거나, 상단의 홈 버튼을 눌러 이 화면으로 돌아올 수 있습니다. 각 섹션은 실제 화면 기준으로 단계별 설명을 제공합니다.
+        </div>
+      </div>
+
+      <!-- 개정이력 미리보기 카드 -->
+      <div onclick="showPage('page-revision')" style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:0;box-shadow:var(--shadow-sm);cursor:pointer;overflow:hidden;transition:box-shadow 0.2s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(26,37,64,0.12)'" onmouseout="this.style.boxShadow='0 1px 4px rgba(26,37,64,0.08)'">
+        <div style="background:linear-gradient(90deg,var(--accent) 0%,var(--navy-mid) 100%);padding:14px 20px;">
+          <span style="font-size:14px;font-weight:700;color:#fff;">📝 문서개정이력표</span>
+        </div>
+        <div style="padding:0 0 4px;">
+          <div style="padding:10px 20px;font-size:12.5px;color:var(--text-secondary);border-bottom:1px solid var(--gray-100);">
+            <strong style="color:var(--text-primary);">문서명 :</strong> 운영 매뉴얼
+          </div>
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead>
+              <tr style="background:var(--navy);">
+                <th style="padding:10px 16px;color:#fff;text-align:center;font-weight:600;width:70px;">버전</th>
+                <th style="padding:10px 16px;color:#fff;text-align:center;font-weight:600;width:110px;">날짜</th>
+                <th style="padding:10px 16px;color:#fff;text-align:left;font-weight:600;">내용</th>
+                <th style="padding:10px 16px;color:#fff;text-align:center;font-weight:600;width:80px;">작성자</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom:1px solid var(--gray-100);">
+                <td style="padding:10px 16px;text-align:center;color:var(--text-primary);">1.0</td>
+                <td style="padding:10px 16px;text-align:center;color:var(--text-secondary);">2026.04.27</td>
+                <td style="padding:10px 16px;color:var(--text-primary);">바이브코딩 AR 스탠다드 매뉴얼 만들기</td>
+                <td style="padding:10px 16px;text-align:center;color:var(--text-primary);">최준영</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--gray-100);">
+                <td style="padding:10px 16px;text-align:center;"></td>
+                <td style="padding:10px 16px;text-align:center;"></td>
+                <td style="padding:10px 16px;"></td>
+                <td style="padding:10px 16px;text-align:center;"></td>
+              </tr>
+              <tr>
+                <td style="padding:10px 16px;text-align:center;"></td>
+                <td style="padding:10px 16px;text-align:center;"></td>
+                <td style="padding:10px 16px;"></td>
+                <td style="padding:10px 16px;text-align:center;"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ━━━━━━━━ 개정 이력 ━━━━━━━━ -->
+    <div id="page-revision" class="page">
+      <div class="section-breadcrumb" style="margin-bottom:20px;">
+        <span onclick="goHome()" style="cursor:pointer;">🏠 홈</span> ›
+        <span>1. Overview (AR개요)</span> ›
+        <span style="color:var(--text-primary);font-weight:500;">1.3 개정 이력</span>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+        <div style="width:28px;height:28px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:15px;">📝</div>
+        <h1 style="font-size:22px;font-weight:700;color:var(--text-primary);">개정 이력</h1>
+      </div>
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:32px;">본 매뉴얼의 버전별 변경 이력을 관리합니다.</p>
+
+      <!-- 문서개정이력표 -->
+      <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);max-width:900px;">
+
+        <!-- 헤더 타이틀 -->
+        <div style="background:linear-gradient(90deg,var(--accent) 0%,var(--navy-mid) 100%);padding:16px 24px;text-align:center;">
+          <span style="font-size:16px;font-weight:700;color:#fff;letter-spacing:0.04em;">문서개정이력표</span>
+        </div>
+
+        <!-- 문서명 행 -->
+        <div style="padding:12px 24px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;gap:8px;background:#fafbff;">
+          <span style="font-size:13px;font-weight:600;color:var(--text-primary);">문서명 :</span>
+          <span style="font-size:13px;color:var(--text-secondary);">운영 매뉴얼</span>
+        </div>
+
+        <!-- 이력 테이블 -->
+        <table style="width:100%;border-collapse:collapse;font-size:13.5px;">
+          <thead>
+            <tr style="background:var(--navy);">
+              <th style="padding:13px 20px;color:#fff;font-weight:600;text-align:center;width:80px;border-right:1px solid rgba(255,255,255,0.1);">버전</th>
+              <th style="padding:13px 20px;color:#fff;font-weight:600;text-align:center;width:130px;border-right:1px solid rgba(255,255,255,0.1);">날짜</th>
+              <th style="padding:13px 20px;color:#fff;font-weight:600;text-align:center;border-right:1px solid rgba(255,255,255,0.1);">내용</th>
+              <th style="padding:13px 20px;color:#fff;font-weight:600;text-align:center;width:90px;">작성자</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- 버전 1.0 -->
+            <tr style="border-bottom:1px solid var(--gray-100);background:#fff;">
+              <td style="padding:14px 20px;text-align:center;font-weight:600;color:var(--accent);border-right:1px solid var(--gray-100);">1.0</td>
+              <td style="padding:14px 20px;text-align:center;color:var(--text-secondary);border-right:1px solid var(--gray-100);">2026.04.27</td>
+              <td style="padding:14px 20px;color:var(--text-primary);border-right:1px solid var(--gray-100);">바이브코딩 AR 스탠다드 매뉴얼 만들기</td>
+              <td style="padding:14px 20px;text-align:center;color:var(--text-primary);font-weight:500;">최준영</td>
+            </tr>
+            <!-- 빈 행 -->
+            <tr style="border-bottom:1px solid var(--gray-100);background:#fafbff;">
+              <td style="padding:14px 20px;border-right:1px solid var(--gray-100);">&nbsp;</td>
+              <td style="padding:14px 20px;border-right:1px solid var(--gray-100);"></td>
+              <td style="padding:14px 20px;border-right:1px solid var(--gray-100);"></td>
+              <td style="padding:14px 20px;"></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--gray-100);background:#fff;">
+              <td style="padding:14px 20px;border-right:1px solid var(--gray-100);">&nbsp;</td>
+              <td style="padding:14px 20px;border-right:1px solid var(--gray-100);"></td>
+              <td style="padding:14px 20px;border-right:1px solid var(--gray-100);"></td>
+              <td style="padding:14px 20px;"></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--gray-100);background:#fafbff;">
+              <td style="padding:14px 20px;border-right:1px solid var(--gray-100);">&nbsp;</td>
+              <td style="padding:14px 20px;border-right:1px solid var(--gray-100);"></td>
+              <td style="padding:14px 20px;border-right:1px solid var(--gray-100);"></td>
+              <td style="padding:14px 20px;"></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--gray-100);background:#fff;">
+              <td style="padding:14px 20px;border-right:1px solid var(--gray-100);">&nbsp;</td>
+              <td style="padding:14px 20px;border-right:1px solid var(--gray-100);"></td>
+              <td style="padding:14px 20px;border-right:1px solid var(--gray-100);"></td>
+              <td style="padding:14px 20px;"></td>
+            </tr>
+            <tr style="background:#fafbff;">
+              <td style="padding:14px 20px;border-right:1px solid var(--gray-100);">&nbsp;</td>
+              <td style="padding:14px 20px;border-right:1px solid var(--gray-100);"></td>
+              <td style="padding:14px 20px;border-right:1px solid var(--gray-100);"></td>
+              <td style="padding:14px 20px;"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 안내 박스 -->
+      <div class="tip-box info" style="margin-top:24px;max-width:900px;">
+        <span class="tip-icon">ℹ️</span>
+        <div class="tip-body">
+          <strong>개정 이력 관리 안내</strong>
+          매뉴얼 내용 변경 시 버전, 변경 날짜, 변경 내용 요약, 작성자를 반드시 기록합니다. 버전은 소수점 단위(1.1, 1.2 …)로 관리하며, 대규모 개정 시 정수 버전(2.0)으로 업데이트합니다.
+        </div>
+      </div>
+    </div>
+
+    <!-- ━━━━━━━━ AR 흐름도 ━━━━━━━━ -->
+    <div id="overview-flow" class="page">
+      <div class="section-breadcrumb" style="margin-bottom:14px;">
+        <span onclick="goHome()">🏠 홈</span> ›
+        <span onclick="showPage('home-page')">1. Overview (AR개요)</span> ›
+        <span>1.1 업무처리 절차</span> ›
+        <span style="color:var(--text-primary);font-weight:500;">AR 전체 업무 흐름도</span>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+        <div style="width:28px;height:28px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:15px;">🔄</div>
+        <h1 style="font-size:22px;font-weight:700;color:var(--text-primary);">1.1.1 AR 전체 업무 흐름도</h1>
+      </div>
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:28px;">Oracle EBS 기반 Accounts Receivable의 수주부터 수금까지(O2C) 전체 업무 프로세스입니다.</p>
+
+      <!-- Phase 1 -->
+      <div class="phase-section">
+        <div class="phase-label phase-blue">
+          <span class="phase-num">Phase 1</span>
+          <span class="phase-title">수주 &amp; 출하 (Order to Ship)</span>
+        </div>
+        <div class="phase-cards">
+          <div class="flow-card">
+            <div class="flow-card-icon">🛒</div>
+            <div class="flow-card-content">
+              <div class="flow-card-title">수주 접수 (SO)</div>
+              <div class="flow-card-desc">영업부서에서 고객 주문을 접수하고 수주 문서 생성 및 승인</div>
+              <div class="flow-card-tag">Oracle OM</div>
+            </div>
+            <div class="flow-card-arrow">›</div>
+          </div>
+          <div class="flow-card">
+            <div class="flow-card-icon" style="color:#22a97a;">✅</div>
+            <div class="flow-card-content">
+              <div class="flow-card-title">수주 승인</div>
+              <div class="flow-card-desc">신용 한도 확인 및 재고 가용성 검토 후 수주 확정 승인</div>
+              <div class="flow-card-tag">Credit Check</div>
+            </div>
+            <div class="flow-card-arrow">›</div>
+          </div>
+          <div class="flow-card">
+            <div class="flow-card-icon">📦</div>
+            <div class="flow-card-content">
+              <div class="flow-card-title">출하 처리 (Shipping)</div>
+              <div class="flow-card-desc">재고에서 품목 피킹, 출하 확정 및 납품서 생성</div>
+              <div class="flow-card-tag">Oracle INV/WMS</div>
+            </div>
+            <div class="flow-card-arrow">›</div>
+          </div>
+          <div class="flow-card">
+            <div class="flow-card-icon">🚚</div>
+            <div class="flow-card-content">
+              <div class="flow-card-title">배송 완료 (GR)</div>
+              <div class="flow-card-desc">고객 수령 확인, 배송 완료 처리 및 AR 인터페이스 데이터 생성</div>
+              <div class="flow-card-tag">Oracle Shipping</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-arrow-down">↓</div>
+
+      <!-- Phase 2 -->
+      <div class="phase-section">
+        <div class="phase-label phase-green">
+          <span class="phase-num">Phase 2</span>
+          <span class="phase-title">인보이스 생성 &amp; 입력 (Invoice Entry)</span>
+        </div>
+        <div class="phase-cards">
+          <div class="flow-card">
+            <div class="flow-card-icon">⚡</div>
+            <div class="flow-card-content">
+              <div class="flow-card-title">자동 인보이스 (AutoInvoice)</div>
+              <div class="flow-card-desc">출하 데이터를 기반으로 AutoInvoice Program이 자동으로 AR 인보이스 생성</div>
+              <div class="flow-card-tag">AutoInvoice</div>
+            </div>
+            <div class="flow-card-arrow">›</div>
+          </div>
+          <div class="flow-card">
+            <div class="flow-card-icon">📄</div>
+            <div class="flow-card-content">
+              <div class="flow-card-title">인보이스 입력</div>
+              <div class="flow-card-desc">AR 담당자가 Oracle AR에 인보이스 헤더/라인 직접 입력 (수동 처리 시)</div>
+              <div class="flow-card-tag">AR Invoices</div>
+            </div>
+            <div class="flow-card-arrow">›</div>
+          </div>
+          <div class="flow-card">
+            <div class="flow-card-icon">🔗</div>
+            <div class="flow-card-content">
+              <div class="flow-card-title">SO 매칭</div>
+              <div class="flow-card-desc">수주 금액과 인보이스 금액 자동 대사 및 차이 분석 후 검토</div>
+              <div class="flow-card-tag">SO Matching</div>
+            </div>
+            <div class="flow-card-arrow">›</div>
+          </div>
+          <div class="flow-card">
+            <div class="flow-card-icon">🧾</div>
+            <div class="flow-card-content">
+              <div class="flow-card-title">세금 처리</div>
+              <div class="flow-card-desc">부가가치세/원천세 코드 적용 및 세금 라인 자동 생성</div>
+              <div class="flow-card-tag">Tax Engine</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-arrow-down">↓</div>
+
+      <!-- Phase 3 -->
+      <div class="phase-section">
+        <div class="phase-label phase-amber">
+          <span class="phase-num">Phase 3</span>
+          <span class="phase-title">인보이스 검토 &amp; 승인 (Validation)</span>
+        </div>
+        <div class="phase-cards">
+          <div class="flow-card">
+            <div class="flow-card-icon">🔍</div>
+            <div class="flow-card-content">
+              <div class="flow-card-title">인보이스 검증 (Validate)</div>
+              <div class="flow-card-desc">Oracle 시스템 자동 검증 실행, 오류 Hold 확인 및 수정</div>
+              <div class="flow-card-tag">Invoice Validation</div>
+            </div>
+            <div class="flow-card-arrow">›</div>
+          </div>
+          <div class="flow-card">
+            <div class="flow-card-icon">⚠️</div>
+            <div class="flow-card-content">
+              <div class="flow-card-title">Hold 해제</div>
+              <div class="flow-card-desc">금액 오류·세금 차이 등 Hold 원인 분석 후 수정 또는 해제 처리</div>
+              <div class="flow-card-tag">Holds &amp; Releases</div>
+            </div>
+            <div class="flow-card-arrow">›</div>
+          </div>
+          <div class="flow-card">
+            <div class="flow-card-icon">✏️</div>
+            <div class="flow-card-content">
+              <div class="flow-card-title">관리자 승인</div>
+              <div class="flow-card-desc">금액 기준 전자결재 라인 통해 관리자 최종 승인 처리</div>
+              <div class="flow-card-tag">Approval Workflow</div>
+            </div>
+            <div class="flow-card-arrow">›</div>
+          </div>
+          <div class="flow-card">
+            <div class="flow-card-icon" style="color:#22a97a;">✅</div>
+            <div class="flow-card-content">
+              <div class="flow-card-title">인보이스 완료 상태</div>
+              <div class="flow-card-desc">인보이스 상태 → Complete, 수금 적용 및 전기 대상 확정</div>
+              <div class="flow-card-tag" style="background:#dcfce7;color:#166534;">Status: Complete</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-arrow-down">↓</div>
+
+      <!-- Phase 4 -->
+      <div class="phase-section">
+        <div class="phase-label phase-coral">
+          <span class="phase-num">Phase 4</span>
+          <span class="phase-title">수금 처리 (Receipt)</span>
+        </div>
+        <div class="phase-cards">
+          <div class="flow-card">
+            <div class="flow-card-icon">💰</div>
+            <div class="flow-card-content">
+              <div class="flow-card-title">수금 입력</div>
+              <div class="flow-card-desc">계좌이체·수표·Lockbox 은행 파일 기반 수금 데이터 입력</div>
+              <div class="flow-card-tag">Receipt Entry</div>
+            </div>
+            <div class="flow-card-arrow">›</div>
+          </div>
+          <div class="flow-card">
+            <div class="flow-card-icon">🔗</div>
+            <div class="flow-card-content">
+              <div class="flow-card-title">인보이스 적용 (Apply)</div>
+              <div class="flow-card-desc">수금을 해당 인보이스에 적용하여 미수금 잔액 소멸</div>
+              <div class="flow-card-tag">Apply Receipts</div>
+            </div>
+            <div class="flow-card-arrow">›</div>
+          </div>
+          <div class="flow-card">
+            <div class="flow-card-icon">⚖️</div>
+            <div class="flow-card-content">
+              <div class="flow-card-title">차이 조정 (Adjustment)</div>
+              <div class="flow-card-desc">소액 차이·환율 차이 발생 시 Adjustment 생성하여 잔액 정리</div>
+              <div class="flow-card-tag">Adjustments</div>
+            </div>
+            <div class="flow-card-arrow">›</div>
+          </div>
+          <div class="flow-card">
+            <div class="flow-card-icon">🏦</div>
+            <div class="flow-card-content">
+              <div class="flow-card-title">은행 대사</div>
+              <div class="flow-card-desc">은행 입금 내역과 AR 수금 대사 및 미대사 건 확인 후 처리</div>
+              <div class="flow-card-tag">Bank Reconcile</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-arrow-down">↓</div>
+
+      <!-- Phase 5 -->
+      <div class="phase-section">
+        <div class="phase-label phase-purple">
+          <span class="phase-num">Phase 5</span>
+          <span class="phase-title">마감 &amp; GL 전송 (Period Close)</span>
+        </div>
+        <div class="phase-cards">
+          <div class="flow-card">
+            <div class="flow-card-icon">📋</div>
+            <div class="flow-card-content">
+              <div class="flow-card-title">마감 전 검토</div>
+              <div class="flow-card-desc">미완료 인보이스 처리, Unapplied 수금 정리 및 AR 잔액 확인</div>
+              <div class="flow-card-tag">Pre-Close Check</div>
+            </div>
+            <div class="flow-card-arrow">›</div>
+          </div>
+          <div class="flow-card">
+            <div class="flow-card-icon">📊</div>
+            <div class="flow-card-content">
+              <div class="flow-card-title">GL 전송</div>
+              <div class="flow-card-desc">General Ledger Transfer Program 실행, AR 트랜잭션 GL 반영</div>
+              <div class="flow-card-tag">GL Transfer</div>
+            </div>
+            <div class="flow-card-arrow">›</div>
+          </div>
+          <div class="flow-card">
+            <div class="flow-card-icon">🔎</div>
+            <div class="flow-card-content">
+              <div class="flow-card-title">AR-GL 대사</div>
+              <div class="flow-card-desc">AR Trial Balance와 GL 잔액 대사 후 차이 원인 파악 및 조정</div>
+              <div class="flow-card-tag">AR-GL Reconcile</div>
+            </div>
+            <div class="flow-card-arrow">›</div>
+          </div>
+          <div class="flow-card">
+            <div class="flow-card-icon">🔒</div>
+            <div class="flow-card-content">
+              <div class="flow-card-title">기간 마감 (Close)</div>
+              <div class="flow-card-desc">AR 회계 기간 상태를 Closed로 변경, 해당 기간 입력 잠금 처리</div>
+              <div class="flow-card-tag" style="background:#dcfce7;color:#166534;">Period: Closed</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <style>
+    /* ── PHASE FLOW DIAGRAM STYLES ── */
+    .phase-section { margin-bottom: 10px; }
+
+    .phase-label {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 13px; font-weight: 600;
+      margin-bottom: 12px;
+    }
+    .phase-num { font-size: 12px; font-weight: 700; opacity: 0.85; }
+    .phase-title { font-size: 13px; font-weight: 600; }
+
+    .phase-blue  { background: #dbeafe; color: #1e40af; }
+    .phase-green { background: #dcfce7; color: #166534; }
+    .phase-amber { background: #fef9c3; color: #854d0e; }
+    .phase-coral { background: #fee2e2; color: #991b1b; }
+    .phase-purple{ background: #ede9fe; color: #5b21b6; }
+
+    .phase-cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .flow-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px 14px;
+      position: relative;
+      display: flex; flex-direction: column; gap: 10px;
+      box-shadow: var(--shadow-sm);
+      transition: box-shadow 0.15s, transform 0.15s;
+    }
+    .flow-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .flow-card-icon {
+      font-size: 22px; line-height: 1;
+      margin-bottom: 2px;
+    }
+    .flow-card-content { flex: 1; }
+    .flow-card-title {
+      font-size: 14px; font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+    .flow-card-desc {
+      font-size: 12px; color: var(--text-secondary);
+      line-height: 1.55;
+    }
+    .flow-card-tag {
+      display: inline-block;
+      background: var(--gray-100);
+      color: var(--text-secondary);
+      font-size: 11px; font-weight: 500;
+      padding: 3px 8px;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+    .flow-card-arrow {
+      position: absolute;
+      right: -18px; top: 50%;
+      transform: translateY(-50%);
+      font-size: 22px;
+      color: var(--gray-400);
+      z-index: 2;
+      pointer-events: none;
+      font-weight: 300;
+    }
+
+    .phase-arrow-down {
+      text-align: center;
+      font-size: 22px;
+      color: var(--gray-400);
+      margin: 6px 0 14px;
+      line-height: 1;
+    }
+
+    @media (max-width: 900px) {
+      .phase-cards { grid-template-columns: 1fr 1fr; }
+      .flow-card-arrow { display: none; }
+    }
+    </style>
+
+    <!-- ━━━━━━━━ 고객정보 관리 ━━━━━━━━ -->
+    <div id="page-cust" class="page">
+      <div class="section-header">
+        <div class="section-breadcrumb">
+          <span onclick="goHome()">🏠 홈</span> › <span>2. 업무별 처리방법</span> › 2.1 고객정보 관리
+        </div>
+        <h1 class="section-title">🏢 고객정보 관리</h1>
+        <p class="section-subtitle">Oracle EBS에서 고객을 신규 등록하고 수금 조건, 세금 정보를 설정하는 방법을 안내합니다.</p>
+      </div>
+
+      <div class="menu-path">
+        <span>AR</span><span class="sep">›</span>
+        <span>고객</span><span class="sep">›</span>
+        <span class="current">고객 표준 입력</span>
+      </div>
+
+      <div class="content-card">
+        <div class="content-card-header">
+          <div class="card-h-icon" style="background:#e8effe;">📝</div>
+          <div>
+            <div class="card-h-title">신규 고객 등록 절차</div>
+            <div class="card-h-sub">고객 마스터 생성 순서</div>
+          </div>
+        </div>
+        <div class="content-card-body">
+          <ul class="step-list">
+            <li class="step-item">
+              <div class="step-num">1</div>
+              <div class="step-content">
+                <h4>고객 기본 정보 입력</h4>
+                <p>고객명, 고객 번호(자동/수동 선택), 사업자등록번호, 고객 유형(기업/개인)을 입력합니다. <strong>고객명은 중복 체크</strong>를 반드시 실행하여 중복 등록을 방지합니다.</p>
+              </div>
+            </li>
+            <li class="step-item">
+              <div class="step-num">2</div>
+              <div class="step-content">
+                <h4>주소 정보 등록</h4>
+                <p>청구 주소(Bill-To)와 배송 주소(Ship-To)를 각각 입력합니다. 청구 주소는 인보이스 발송에 사용되므로 정확히 입력해야 합니다. 복수의 주소 등록이 가능합니다.</p>
+              </div>
+            </li>
+            <li class="step-item">
+              <div class="step-num">3</div>
+              <div class="step-content">
+                <h4>수금 조건 설정 (Payment Terms)</h4>
+                <p>결제 조건(Net 30, Net 60 등)을 지정합니다. 수금 조건은 인보이스 만기일 자동 계산에 사용됩니다. 사전에 등록된 결제 조건 중에서 선택합니다.</p>
+              </div>
+            </li>
+            <li class="step-item">
+              <div class="step-num">4</div>
+              <div class="step-content">
+                <h4>세금 정보 입력</h4>
+                <p>세금 코드, 과세 유형(과세/면세/영세율)을 선택합니다. 해외 거래 고객의 경우 VAT 등록 번호를 입력합니다.</p>
+              </div>
+            </li>
+            <li class="step-item">
+              <div class="step-num">5</div>
+              <div class="step-content">
+                <h4>신용 한도 설정</h4>
+                <p>고객별 신용 한도 금액을 입력합니다. 설정된 한도 초과 시 오더 입력 단계에서 경고 또는 보류 처리됩니다.</p>
+              </div>
+            </li>
+            <li class="step-item">
+              <div class="step-num">6</div>
+              <div class="step-content">
+                <h4>저장 및 검토</h4>
+                <p>모든 정보 입력 후 [저장] 버튼을 클릭합니다. 저장 후 자동으로 고객 번호가 채번됩니다.</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="content-card">
+        <div class="content-card-header">
+          <div class="card-h-icon" style="background:#e1f7f3;">📋</div>
+          <div><div class="card-h-title">고객 등록 주요 필드 설명</div></div>
+        </div>
+        <div class="content-card-body">
+          <table class="field-table">
+            <thead><tr><th>필드명</th><th>필수여부</th><th>설명 및 주의사항</th></tr></thead>
+            <tbody>
+              <tr><td>고객명 (Customer Name)</td><td><span class="badge required">필수</span></td><td>법인명 또는 개인명. 공식 사업자 명칭과 일치시켜야 합니다.</td></tr>
+              <tr><td>고객 번호 (Customer Number)</td><td><span class="badge auto">자동채번</span></td><td>시스템 자동 생성. 수동 입력은 설정에 따라 다릅니다.</td></tr>
+              <tr><td>고객 유형 (Customer Type)</td><td><span class="badge required">필수</span></td><td>Organization(기업) / Person(개인) 중 선택합니다.</td></tr>
+              <tr><td>수금 조건 (Payment Terms)</td><td><span class="badge required">필수</span></td><td>Net 30, Net 60 등 사전 등록된 조건 중 선택합니다.</td></tr>
+              <tr><td>세금 코드 (Tax Code)</td><td><span class="badge optional">선택</span></td><td>해당 고객의 세율 코드. 미입력 시 인보이스에서 수동 입력해야 합니다.</td></tr>
+              <tr><td>신용 한도 (Credit Limit)</td><td><span class="badge optional">선택</span></td><td>미입력 시 한도 없음으로 처리됩니다.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="tip-box warn">
+        <span class="tip-icon">⚠️</span>
+        <div class="tip-body">
+          <strong>주의</strong> 고객 등록 후 사업자등록번호는 수정이 불가할 수 있습니다. 초기 입력 시 반드시 정확히 입력하세요. 수정이 필요한 경우 시스템 관리자에게 문의하세요.
+        </div>
+      </div>
+    </div>
+
+    <!-- ━━━━━━━━ 매출 전표 처리 ━━━━━━━━ -->
+    <div id="page-invoice" class="page">
+      <div class="section-header">
+        <div class="section-breadcrumb">
+          <span onclick="goHome()">🏠 홈</span> › <span>2. 업무별 처리방법</span> › 2.2 매출 전표 처리
+        </div>
+        <h1 class="section-title">📄 매출 전표(인보이스) 처리</h1>
+        <p class="section-subtitle">Oracle EBS에서 매출 인보이스를 생성하고 승인, 전기 처리하는 방법을 안내합니다.</p>
+      </div>
+
+      <div class="menu-path">
+        <span>AR</span><span class="sep">›</span>
+        <span>전표</span><span class="sep">›</span>
+        <span class="current">인보이스 입력</span>
+      </div>
+
+      <div class="content-card">
+        <div class="content-card-header">
+          <div class="card-h-icon" style="background:#e8effe;">➕</div>
+          <div>
+            <div class="card-h-title">인보이스 신규 입력</div>
+            <div class="card-h-sub">수동 인보이스 생성 절차</div>
+          </div>
+        </div>
+        <div class="content-card-body">
+          <ul class="step-list">
+            <li class="step-item">
+              <div class="step-num">1</div>
+              <div class="step-content">
+                <h4>인보이스 유형 선택</h4>
+                <p>Invoice(일반 매출), Credit Memo(크레딧), Debit Memo(추가청구) 중 선택합니다. 인보이스 유형에 따라 GL 계정이 달라집니다.</p>
+              </div>
+            </li>
+            <li class="step-item">
+              <div class="step-num">2</div>
+              <div class="step-content">
+                <h4>고객 및 기본 정보 입력</h4>
+                <p>고객명 또는 고객 번호로 검색하여 선택합니다. 청구지 주소(Bill-To)를 확인하고, 인보이스 일자와 GL Date를 입력합니다. GL Date는 회계기간이 열려있는 날짜여야 합니다.</p>
+              </div>
+            </li>
+            <li class="step-item">
+              <div class="step-num">3</div>
+              <div class="step-content">
+                <h4>수금 조건 확인</h4>
+                <p>고객 마스터에서 기본 Payment Terms가 자동 불러와집니다. 건별로 다른 조건 적용이 필요하면 여기서 변경 가능합니다.</p>
+              </div>
+            </li>
+            <li class="step-item">
+              <div class="step-num">4</div>
+              <div class="step-content">
+                <h4>인보이스 라인 입력</h4>
+                <p>품목/서비스 설명, 수량, 단가, 세금 코드를 라인별로 입력합니다. 복수의 라인 입력이 가능하며, 라인별로 상이한 세율 적용이 가능합니다.</p>
+              </div>
+            </li>
+            <li class="step-item">
+              <div class="step-num">5</div>
+              <div class="step-content">
+                <h4>회계 정보 확인</h4>
+                <p>[회계 배분] 탭에서 차변/대변 계정을 확인합니다. 자동으로 생성된 계정 배분이 올바른지 검토합니다. (매출채권 차변 / 매출 대변)</p>
+              </div>
+            </li>
+            <li class="step-item">
+              <div class="step-num">6</div>
+              <div class="step-content">
+                <h4>인보이스 완료 처리</h4>
+                <p>검토 완료 후 [완료] 버튼을 클릭합니다. 완료 상태가 되어야 수금 적용 및 전기 처리가 가능합니다.</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="content-card">
+        <div class="content-card-header">
+          <div class="card-h-icon" style="background:#fef3de;">🖨️</div>
+          <div><div class="card-h-title">인보이스 출력 및 전송</div></div>
+        </div>
+        <div class="content-card-body">
+          <div class="tip-box success">
+            <span class="tip-icon">✅</span>
+            <div class="tip-body">
+              <strong>인보이스 프린트 방법</strong>
+              인보이스 조회 화면에서 해당 인보이스 선택 후 [Actions] → [Print] 메뉴를 클릭합니다. 출력 형식(PDF/엑셀)을 선택하고 실행합니다.
+            </div>
+          </div>
+          <div class="tip-box info">
+            <span class="tip-icon">📧</span>
+            <div class="tip-body">
+              <strong>이메일 자동 발송 설정</strong>
+              고객 마스터에 이메일 주소가 등록된 경우, 인보이스 완료 시 자동 이메일 발송이 가능합니다. 설정은 시스템 관리자에게 문의하세요.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="content-card">
+        <div class="content-card-header">
+          <div class="card-h-icon" style="background:#e1f7f3;">⚡</div>
+          <div><div class="card-h-title">자동 인보이스 생성 (AutoInvoice)</div></div>
+        </div>
+        <div class="content-card-body">
+          <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">
+            Oracle EBS AutoInvoice 프로그램을 사용하면 외부 시스템(영업, 물류)에서 생성된 데이터를 AR 인보이스로 자동 변환할 수 있습니다.
+          </p>
+          <ul class="step-list">
+            <li class="step-item">
+              <div class="step-num">1</div>
+              <div class="step-content">
+                <h4>인터페이스 테이블 데이터 적재</h4>
+                <p>RA_INTERFACE_LINES_ALL 등 AR 인터페이스 테이블에 인보이스 데이터를 적재합니다.</p>
+              </div>
+            </li>
+            <li class="step-item">
+              <div class="step-num">2</div>
+              <div class="step-content">
+                <h4>AutoInvoice Master Program 실행</h4>
+                <p>AR → 요청 → AutoInvoice Master Program을 실행합니다. 처리 대상 일자 범위와 원천(Source)을 지정합니다.</p>
+              </div>
+            </li>
+            <li class="step-item">
+              <div class="step-num">3</div>
+              <div class="step-content">
+                <h4>오류 인보이스 검토 및 재처리</h4>
+                <p>AutoInvoice Exception Report를 조회하여 오류 건을 확인하고 수정 후 재실행합니다.</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ━━━━━━━━ 수금 처리 ━━━━━━━━ -->
+    <div id="page-receipt" class="page">
+      <div class="section-header">
+        <div class="section-breadcrumb">
+          <span onclick="goHome()">🏠 홈</span> › <span>2. 업무별 처리방법</span> › 2.3 수금 처리
+        </div>
+        <h1 class="section-title">💰 수금 처리</h1>
+        <p class="section-subtitle">고객으로부터 수금된 금액을 Oracle EBS에 입력하고 인보이스에 적용하는 방법을 안내합니다.</p>
+      </div>
+
+      <div class="menu-path">
+        <span>AR</span><span class="sep">›</span>
+        <span>수금</span><span class="sep">›</span>
+        <span class="current">수금 입력</span>
+      </div>
+
+      <div class="grid-2">
+        <div class="content-card">
+          <div class="content-card-header">
+            <div class="card-h-icon" style="background:#e6faf0;">💳</div>
+            <div><div class="card-h-title">수동 수금 입력</div></div>
+          </div>
+          <div class="content-card-body">
+            <ul class="step-list">
+              <li class="step-item">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                  <h4>수금 일자 및 금액 입력</h4>
+                  <p>수금일, 통화, 수금 금액을 입력합니다. 통화가 외화인 경우 환율을 입력합니다.</p>
+                </div>
+              </li>
+              <li class="step-item">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                  <h4>수금 방법 선택</h4>
+                  <p>계좌이체, 수표, 현금 등 수금 방법(Receipt Method)을 선택합니다.</p>
+                </div>
+              </li>
+              <li class="step-item">
+                <div class="step-num">3</div>
+                <div class="step-content">
+                  <h4>고객 선택</h4>
+                  <p>수금 고객을 검색하여 선택합니다. 고객 선택 후 해당 고객의 미결 인보이스가 조회됩니다.</p>
+                </div>
+              </li>
+              <li class="step-item">
+                <div class="step-num">4</div>
+                <div class="step-content">
+                  <h4>인보이스 적용</h4>
+                  <p>미결 인보이스 목록에서 해당 인보이스를 선택하고 적용 금액을 입력합니다.</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="content-card">
+          <div class="content-card-header">
+            <div class="card-h-icon" style="background:#ede9fe;">🤖</div>
+            <div><div class="card-h-title">자동 수금 (Lockbox)</div></div>
+          </div>
+          <div class="content-card-body">
+            <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;">은행 파일을 통해 수금을 자동으로 처리하는 방법입니다.</p>
+            <ul class="step-list">
+              <li class="step-item">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                  <h4>은행 파일 수신</h4>
+                  <p>은행으로부터 수금 데이터 파일을 수신합니다. (고정 포맷 또는 BAI2 형식)</p>
+                </div>
+              </li>
+              <li class="step-item">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                  <h4>Lockbox 프로그램 실행</h4>
+                  <p>AR → 요청 → Lockbox Transmission Program을 실행하고 파일을 업로드합니다.</p>
+                </div>
+              </li>
+              <li class="step-item">
+                <div class="step-num">3</div>
+                <div class="step-content">
+                  <h4>오류 건 처리</h4>
+                  <p>자동 매칭이 실패한 수금은 수동으로 인보이스를 지정하여 처리합니다.</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="content-card">
+        <div class="content-card-header">
+          <div class="card-h-icon" style="background:#fdeaea;">❓</div>
+          <div>
+            <div class="card-h-title">미적용 수금 처리</div>
+            <div class="card-h-sub">Unapplied / Unidentified Receipt 처리</div>
+          </div>
+        </div>
+        <div class="content-card-body">
+          <div class="tip-box warn">
+            <span class="tip-icon">⚠️</span>
+            <div class="tip-body">
+              <strong>미적용 수금이란?</strong>
+              고객이 특정 인보이스를 지정하지 않고 입금하거나, 인보이스와 금액이 다른 경우 발생합니다. 미적용 수금은 매출채권 잔액에 포함되지 않으므로 반드시 처리해야 합니다.
+            </div>
+          </div>
+          <table class="field-table" style="margin-top:16px;">
+            <thead><tr><th>수금 상태</th><th>설명</th><th>처리 방법</th></tr></thead>
+            <tbody>
+              <tr><td>Unidentified</td><td>고객을 특정할 수 없는 수금</td><td>고객을 확인 후 고객 지정하여 Unapplied 처리</td></tr>
+              <tr><td>Unapplied</td><td>고객은 알지만 인보이스 미지정</td><td>해당 인보이스를 직접 선택하여 적용</td></tr>
+              <tr><td>On Account</td><td>선수금으로 처리된 수금</td><td>인보이스 발생 시 선수금 계정에서 전환</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ━━━━━━━━ 전표 대사 ━━━━━━━━ -->
+    <div id="page-apply" class="page">
+      <div class="section-header">
+        <div class="section-breadcrumb">
+          <span onclick="goHome()">🏠 홈</span> › <span>2. 업무별 처리방법</span> › 2.4 전표 대사
+        </div>
+        <h1 class="section-title">🔗 전표 대사</h1>
+        <p class="section-subtitle">수금과 인보이스를 연결하여 잔액을 정리하고, 차이 조정 처리하는 방법을 안내합니다.</p>
+      </div>
+
+      <div class="content-card">
+        <div class="content-card-header">
+          <div class="card-h-icon" style="background:#e8effe;">🔗</div>
+          <div><div class="card-h-title">수금-인보이스 대사 절차</div></div>
+        </div>
+        <div class="content-card-body">
+          <ul class="step-list">
+            <li class="step-item">
+              <div class="step-num">1</div>
+              <div class="step-content">
+                <h4>대사 대상 확인</h4>
+                <p>AR → 수금 조회에서 Unapplied 상태의 수금을 조회합니다. 인보이스 번호, 금액, 만기일을 기준으로 대사할 건을 선택합니다.</p>
+              </div>
+            </li>
+            <li class="step-item">
+              <div class="step-num">2</div>
+              <div class="step-content">
+                <h4>Apply 화면 진입</h4>
+                <p>수금 선택 후 [Apply] 버튼을 클릭합니다. 해당 고객의 미결 인보이스 목록이 표시됩니다.</p>
+              </div>
+            </li>
+            <li class="step-item">
+              <div class="step-num">3</div>
+              <div class="step-content">
+                <h4>인보이스 선택 및 금액 입력</h4>
+                <p>대사할 인보이스를 선택하고 적용 금액을 입력합니다. 수금 금액이 인보이스 금액보다 크면 나머지는 On Account 또는 다른 인보이스에 적용합니다.</p>
+              </div>
+            </li>
+            <li class="step-item">
+              <div class="step-num">4</div>
+              <div class="step-content">
+                <h4>조정(Adjustment) 처리</h4>
+                <p>소액 차이나 환율 차이가 있는 경우 Adjustment를 생성하여 잔액을 소멸시킵니다. 조정 금액은 설정된 한도 내에서만 처리 가능합니다.</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="tip-box info">
+        <span class="tip-icon">💡</span>
+        <div class="tip-body">
+          <strong>대사 취소 방법</strong>
+          잘못 적용된 대사는 수금 조회에서 해당 수금을 선택 후 [Reverse Application]을 클릭하여 취소할 수 있습니다. 취소 후 재대사를 진행합니다.
+        </div>
+      </div>
+    </div>
+
+    <!-- ━━━━━━━━ 신용 관리 ━━━━━━━━ -->
+    <div id="page-credit" class="page">
+      <div class="section-header">
+        <div class="section-breadcrumb">
+          <span onclick="goHome()">🏠 홈</span> › <span>2. 업무별 처리방법</span> › 2.5 신용 관리
+        </div>
+        <h1 class="section-title">⚖️ 신용 관리</h1>
+        <p class="section-subtitle">고객 신용 한도 설정, 연체 관리, 독촉장 발행 등 AR 신용 관리 방법을 안내합니다.</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="content-card">
+          <div class="content-card-header">
+            <div class="card-h-icon" style="background:#fef3de;">💳</div>
+            <div><div class="card-h-title">신용 한도 관리</div></div>
+          </div>
+          <div class="content-card-body">
+            <ul class="step-list">
+              <li class="step-item">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                  <h4>신용 한도 설정</h4>
+                  <p>고객 마스터 → [신용 프로파일] 탭에서 신용 한도 금액과 통화를 입력합니다.</p>
+                </div>
+              </li>
+              <li class="step-item">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                  <h4>한도 초과 처리 규칙 설정</h4>
+                  <p>한도 초과 시 경고(Warning)만 표시할지, 오더 보류(Hold)를 걸지 결정합니다.</p>
+                </div>
+              </li>
+              <li class="step-item">
+                <div class="step-num">3</div>
+                <div class="step-content">
+                  <h4>주기적 한도 검토</h4>
+                  <p>Customer Credit Snapshot Report를 통해 고객별 신용 사용 현황을 주기적으로 검토합니다.</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="content-card">
+          <div class="content-card-header">
+            <div class="card-h-icon" style="background:#fdeaea;">📬</div>
+            <div><div class="card-h-title">독촉장 발행 (Dunning)</div></div>
+          </div>
+          <div class="content-card-body">
+            <ul class="step-list">
+              <li class="step-item">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                  <h4>연체 기준 설정</h4>
+                  <p>Dunning Letter 발행 조건(연체 일수, 금액)을 설정합니다. 1차(30일), 2차(60일), 3차(90일) 독촉장으로 단계적 발행이 가능합니다.</p>
+                </div>
+              </li>
+              <li class="step-item">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                  <h4>독촉장 생성 및 발송</h4>
+                  <p>AR → 요청 → Print Dunning Letters 프로그램을 실행합니다. 이메일 또는 우편으로 발송합니다.</p>
+                </div>
+              </li>
+              <li class="step-item">
+                <div class="step-num">3</div>
+                <div class="step-content">
+                  <h4>독촉 이력 관리</h4>
+                  <p>고객별 독촉 발송 이력은 Customer Calls/Notes에 기록하여 추적합니다.</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ━━━━━━━━ 마감 처리 ━━━━━━━━ -->
+    <div id="page-close" class="page">
+      <div class="section-header">
+        <div class="section-breadcrumb">
+          <span onclick="goHome()">🏠 홈</span> › <span>2. 업무별 처리방법</span> › 2.6 마감 처리
+        </div>
+        <h1 class="section-title">📅 마감 처리</h1>
+        <p class="section-subtitle">AR 월마감 절차와 GL 전송, 기간 마감 방법을 안내합니다.</p>
+      </div>
+
+      <div class="content-card">
+        <div class="content-card-header">
+          <div class="card-h-icon" style="background:#e1f7f3;">📅</div>
+          <div>
+            <div class="card-h-title">AR 월마감 체크리스트</div>
+            <div class="card-h-sub">순서대로 진행하세요</div>
+          </div>
+        </div>
+        <div class="content-card-body">
+          <ul class="step-list">
+            <li class="step-item">
+              <div class="step-num">1</div>
+              <div class="step-content">
+                <h4>미완료 인보이스 처리</h4>
+                <p>Incomplete 상태의 인보이스를 조회하여 완료 처리합니다. AR → 전표 → 인보이스 조회에서 상태 = Incomplete로 필터링합니다.</p>
+              </div>
+            </li>
+            <li class="step-item">
+              <div class="step-num">2</div>
+              <div class="step-content">
+                <h4>미전기 트랜잭션 전기 처리</h4>
+                <p>General Ledger Transfer Program을 실행하여 AR 트랜잭션을 GL에 전기합니다. AR → 요청 → General Ledger Transfer.</p>
+              </div>
+            </li>
+            <li class="step-item">
+              <div class="step-num">3</div>
+              <div class="step-content">
+                <h4>미결 수금 확인</h4>
+                <p>Unapplied/Unidentified 수금을 전량 처리합니다. 처리 불가한 건은 상위자 승인 후 On Account 처리합니다.</p>
+              </div>
+            </li>
+            <li class="step-item">
+              <div class="step-num">4</div>
+              <div class="step-content">
+                <h4>AR-GL 잔액 조정</h4>
+                <p>AR Trial Balance Report와 GL 잔액을 대사합니다. 차이가 발생한 경우 원인을 파악하고 조정합니다.</p>
+              </div>
+            </li>
+            <li class="step-item">
+              <div class="step-num">5</div>
+              <div class="step-content">
+                <h4>기간 마감 (Close Period)</h4>
+                <p>AR → 설정 → 회계 기간에서 해당 기간의 상태를 Closed로 변경합니다. 마감 후에는 해당 기간에 새 트랜잭션 입력이 불가합니다.</p>
+              </div>
+            </li>
+          </ul>
+          <div class="tip-box warn">
+            <span class="tip-icon">⚠️</span>
+            <div class="tip-body">
+              <strong>주의</strong> 기간 마감은 되돌릴 수 없습니다. AR-GL 잔액 대사가 완료된 후 마감을 진행하세요.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ━━━━━━━━ 조회 및 보고서 ━━━━━━━━ -->
+    <div id="page-report" class="page">
+      <div class="section-header">
+        <div class="section-breadcrumb">
+          <span onclick="goHome()">🏠 홈</span> › <span>2. 업무별 처리방법</span> › 2.7 조회 및 보고서
+        </div>
+        <h1 class="section-title">🔍 조회 및 보고서</h1>
+        <p class="section-subtitle">AR 주요 보고서 조회 방법과 활용 가이드를 안내합니다.</p>
+      </div>
+
+      <div class="content-card">
+        <div class="content-card-header">
+          <div class="card-h-icon" style="background:#e8effe;">📊</div>
+          <div><div class="card-h-title">주요 AR 보고서 목록</div></div>
+        </div>
+        <div class="content-card-body">
+          <table class="field-table">
+            <thead><tr><th>보고서명</th><th>용도</th><th>실행 경로</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong>AR Aging Report</strong><br><small style="color:var(--text-muted)">연령 분석 보고서</small></td>
+                <td>미수금의 경과 기간별(30/60/90/90일 초과) 잔액을 분석합니다.</td>
+                <td>AR → 보고서 → Aging → 4 Bucket Aging Report</td>
+              </tr>
+              <tr>
+                <td><strong>AR Trial Balance</strong><br><small style="color:var(--text-muted)">AR 시산표</small></td>
+                <td>AR 잔액과 GL 잔액을 대사하기 위한 기준 보고서입니다.</td>
+                <td>AR → 보고서 → Trial Balance</td>
+              </tr>
+              <tr>
+                <td><strong>Customer Balance</strong><br><small style="color:var(--text-muted)">고객별 잔액</small></td>
+                <td>고객별 인보이스, 수금, 잔액 현황을 확인합니다.</td>
+                <td>AR → 고객 → 고객 잔액 요약</td>
+              </tr>
+              <tr>
+                <td><strong>Receipt Register</strong><br><small style="color:var(--text-muted)">수금 등록부</small></td>
+                <td>기간 내 수금된 금액 목록을 조회합니다.</td>
+                <td>AR → 보고서 → Receipts → Receipt Register</td>
+              </tr>
+              <tr>
+                <td><strong>Transaction Register</strong><br><small style="color:var(--text-muted)">전표 등록부</small></td>
+                <td>기간 내 생성된 인보이스, 크레딧 메모 등 전체 목록입니다.</td>
+                <td>AR → 보고서 → Transactions → Transaction Register</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="tip-box info">
+        <span class="tip-icon">💡</span>
+        <div class="tip-body">
+          <strong>보고서 파라미터 설정 팁</strong>
+          보고서 실행 시 As of Date(기준일)와 Currency(통화)를 반드시 확인하세요. 통화를 Functional(기능 통화)로 설정하면 외화 거래도 원화로 환산되어 출력됩니다.
+        </div>
+      </div>
+    </div>
+
+    <!-- ━━━━━━━━ AR 기초 설정 ━━━━━━━━ -->
+    <div id="page-setup" class="page">
+      <div class="section-header">
+        <div class="section-breadcrumb">
+          <span onclick="goHome()">🏠 홈</span> › <span>3. 시스템 설정</span> › 3.1 AR 기초 설정
+        </div>
+        <h1 class="section-title">🔧 AR 기초 설정</h1>
+        <p class="section-subtitle">Oracle EBS AR 모듈 운영을 위한 기초 설정 방법을 안내합니다.</p>
+      </div>
+      <div class="content-card">
+        <div class="content-card-body">
+          <table class="field-table">
+            <thead><tr><th>설정 항목</th><th>설명</th><th>경로</th></tr></thead>
+            <tbody>
+              <tr><td>수금 조건 (Payment Terms)</td><td>Net 30, 2/10 Net 30 등 결제 조건 정의</td><td>AR → 설정 → 거래 → 수금 조건</td></tr>
+              <tr><td>수금 방법 (Receipt Method)</td><td>계좌이체, 수표, 현금 등 방법 정의</td><td>AR → 설정 → 수금 → 수금 방법</td></tr>
+              <tr><td>거래 유형 (Transaction Type)</td><td>Invoice, Credit Memo 등 유형 설정</td><td>AR → 설정 → 거래 → 거래 유형</td></tr>
+              <tr><td>세금 코드 (Tax Code)</td><td>과세/면세/영세율 코드 정의</td><td>AR → 설정 → 세금</td></tr>
+              <tr><td>회계 기간 (Accounting Period)</td><td>AR 회계 기간 Open/Close 관리</td><td>AR → 설정 → 재무 → 회계 기간</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ━━━━━━━━ 자동화 설정 ━━━━━━━━ -->
+    <div id="page-auto" class="page">
+      <div class="section-header">
+        <div class="section-breadcrumb">
+          <span onclick="goHome()">🏠 홈</span> › <span>3. 시스템 설정</span> › 3.2 자동화 설정
+        </div>
+        <h1 class="section-title">🤖 자동화 설정</h1>
+        <p class="section-subtitle">AR 업무 효율을 높이는 자동화 프로그램 설정 방법을 안내합니다.</p>
+      </div>
+      <div class="content-card">
+        <div class="content-card-body">
+          <div class="tip-box success">
+            <span class="tip-icon">🤖</span>
+            <div class="tip-body">
+              <strong>자동 전기 (Auto Post)</strong>
+              AR → 설정 → 시스템 옵션에서 자동 전기 설정을 활성화하면 인보이스 완료 시 자동으로 GL 전기됩니다.
+            </div>
+          </div>
+          <div class="tip-box info">
+            <span class="tip-icon">📧</span>
+            <div class="tip-body">
+              <strong>자동 이메일 발송</strong>
+              인보이스 완료 시 고객에게 자동으로 이메일이 발송되도록 설정할 수 있습니다. AR → 설정 → 시스템 옵션 → 이메일 설정을 참고하세요.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ━━━━━━━━ 오류 처리 ━━━━━━━━ -->
+    <div id="page-error" class="page">
+      <div class="section-header">
+        <div class="section-breadcrumb">
+          <span onclick="goHome()">🏠 홈</span> › <span>4. 오류 처리</span> › 4.1 주요 오류 및 해결방법
+        </div>
+        <h1 class="section-title">🚨 주요 오류 및 해결방법</h1>
+        <p class="section-subtitle">AR 업무 중 자주 발생하는 오류와 해결 방법을 안내합니다.</p>
+      </div>
+      <div class="content-card">
+        <div class="content-card-body">
+          <table class="field-table">
+            <thead><tr><th>오류 메시지</th><th>원인</th><th>해결 방법</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong>Period is not open</strong></td>
+                <td>입력한 GL Date가 닫힌 회계 기간</td>
+                <td>AR → 설정 → 회계 기간에서 해당 기간을 Open으로 변경하거나, GL Date를 열린 기간으로 수정합니다.</td>
+              </tr>
+              <tr>
+                <td><strong>AutoInvoice Exception: Invalid Account</strong></td>
+                <td>인터페이스 데이터의 GL 계정이 잘못됨</td>
+                <td>RA_INTERFACE_LINES_ALL의 계정 정보를 확인하고, 유효한 계정으로 수정 후 재실행합니다.</td>
+              </tr>
+              <tr>
+                <td><strong>Customer on Credit Hold</strong></td>
+                <td>고객의 신용 한도 초과 또는 수동 보류 처리</td>
+                <td>고객 마스터 → [신용 프로파일]에서 Hold 해제하거나 신용 한도를 상향합니다.</td>
+              </tr>
+              <tr>
+                <td><strong>Receipt cannot be reversed</strong></td>
+                <td>이미 적용된 수금을 직접 삭제하려 시도</td>
+                <td>[Apply] → [Reverse Application]으로 대사를 먼저 취소한 후 수금을 역분개합니다.</td>
+              </tr>
+              <tr>
+                <td><strong>GL Transfer Incomplete</strong></td>
+                <td>AR-GL 전송 중 오류 발생</td>
+                <td>AR → 요청 → 출력에서 오류 로그를 확인하고, 원인 해결 후 재실행합니다.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="tip-box error">
+        <span class="tip-icon">🚨</span>
+        <div class="tip-body">
+          <strong>오류 해결이 어려운 경우</strong>
+          시스템 관리자 또는 Oracle Support에 SR(Service Request)을 등록하여 문의하세요. 오류 메시지, 발생 시간, 관련 트랜잭션 번호를 함께 제공하면 빠른 해결이 가능합니다.
+        </div>
+      </div>
+    </div>
+
+    <!-- ━━━━━━━━ ERD ━━━━━━━━ -->
+    <div id="page-erd" class="page">
+      <div class="section-breadcrumb" style="margin-bottom:14px;">
+        <span onclick="goHome()">🏠 홈</span> ›
+        <span style="color:var(--text-primary);font-weight:500;">5. ERD</span> ›
+        <span style="color:var(--text-primary);font-weight:500;">5.1 AR 테이블 관계도</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+        <div style="width:28px;height:28px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:15px;">🗂️</div>
+        <h1 style="font-size:22px;font-weight:700;color:var(--text-primary);">5.1 AR 테이블 관계도 (ERD)</h1>
+      </div>
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:20px;">Oracle EBS AR 모듈의 주요 테이블 및 관계를 나타낸 Entity-Relationship Diagram입니다.</p>
+
+      <!-- 범례 -->
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:18px;align-items:center;">
+        <span style="font-size:12px;font-weight:600;color:var(--text-secondary);">범례:</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:12px;"><span style="display:inline-block;width:14px;height:14px;background:#dbeafe;border:1.5px solid #3b82f6;border-radius:3px;"></span>거래(Transaction)</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:12px;"><span style="display:inline-block;width:14px;height:14px;background:#dcfce7;border:1.5px solid #22c55e;border-radius:3px;"></span>수금(Receipt)</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:12px;"><span style="display:inline-block;width:14px;height:14px;background:#fef9c3;border:1.5px solid #eab308;border-radius:3px;"></span>고객(Customer)</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:12px;"><span style="display:inline-block;width:14px;height:14px;background:#fce7f3;border:1.5px solid #ec4899;border-radius:3px;"></span>회계(Accounting)</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:12px;"><span style="display:inline-block;width:14px;height:14px;background:#ede9fe;border:1.5px solid #8b5cf6;border-radius:3px;"></span>GL/수주</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:12px;"><span style="display:inline-block;width:14px;height:14px;background:#f1f5f9;border:1.5px solid #64748b;border-radius:3px;"></span>기타</span>
+      </div>
+
+      <!-- ERD 스크롤 컨테이너 -->
+      <div style="background:#f8fafc;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:auto;padding:24px;">
+        <div style="min-width:1400px;">
+          <svg viewBox="0 0 1400 980" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:'Noto Sans KR',sans-serif;">
+            <defs>
+              <marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L8,3 z" fill="#94a3b8"/>
+              </marker>
+              <marker id="arr-b" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L8,3 z" fill="#3b82f6"/>
+              </marker>
+              <marker id="fork" markerWidth="8" markerHeight="8" refX="1" refY="3" orient="auto">
+                <path d="M0,1 L0,5 M0,3 L6,3" stroke="#94a3b8" stroke-width="1.2" fill="none"/>
+              </marker>
+            </defs>
+
+            <!-- ══ 스타일 정의 ══ -->
+            <style>
+              .tbl-hdr { font-size:10.5px; font-weight:700; }
+              .tbl-row { font-size:9.5px; }
+              .tbl-pk  { font-size:9px; fill:#1e40af; font-style:italic; }
+              .conn    { stroke:#94a3b8; stroke-width:1.2; fill:none; marker-end:url(#arr); }
+              .conn-b  { stroke:#3b82f6; stroke-width:1.4; fill:none; marker-end:url(#arr-b); }
+            </style>
+
+            <!-- ══════════════════════════════════════════
+                 색상그룹: 거래(파랑), 수금(초록), 고객(노랑), 회계(핑크), GL/OM(보라), 기타(회색)
+            ══════════════════════════════════════════ -->
+
+            <!-- ─── RA_CUSTOMER_TRX_ALL (중심) ─── -->
+            <g id="ra_cust_trx">
+              <rect x="390" y="20" width="210" height="190" rx="5" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+              <rect x="390" y="20" width="210" height="22" rx="5" fill="#3b82f6"/>
+              <rect x="390" y="36" width="210" height="6" fill="#3b82f6"/>
+              <text x="495" y="35" text-anchor="middle" class="tbl-hdr" fill="#fff">RA_CUSTOMER_TRX_ALL</text>
+              <line x1="390" y1="42" x2="600" y2="42" stroke="#93c5fd" stroke-width="0.8"/>
+              <text x="398" y="55" class="tbl-pk" fill="#1e40af">customer_trx_id (PK)</text>
+              <text x="398" y="68" class="tbl-row" fill="#1e3a8a">trx_number</text>
+              <text x="398" y="80" class="tbl-row" fill="#1e3a8a">batch_source_id</text>
+              <text x="398" y="92" class="tbl-row" fill="#1e3a8a">sold_to_customer_id</text>
+              <text x="398" y="104" class="tbl-row" fill="#1e3a8a">bill_to_customer_id</text>
+              <text x="398" y="116" class="tbl-row" fill="#1e3a8a">bill_to_site_use_id</text>
+              <text x="398" y="128" class="tbl-row" fill="#1e3a8a">ship_to_site_use_id</text>
+              <text x="398" y="140" class="tbl-row" fill="#1e3a8a">batch_source_id</text>
+              <text x="398" y="152" class="tbl-row" fill="#1e3a8a">term_id</text>
+              <text x="398" y="164" class="tbl-row" fill="#1e3a8a">batch_id</text>
+              <text x="398" y="176" class="tbl-row" fill="#1e3a8a">primary_sales_rep_id</text>
+            </g>
+
+            <!-- ─── RA_CUSTOMER_TRX_LINES_ALL ─── -->
+            <g id="ra_cust_trx_lines">
+              <rect x="390" y="230" width="210" height="130" rx="5" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+              <rect x="390" y="230" width="210" height="22" rx="5" fill="#3b82f6"/>
+              <rect x="390" y="246" width="210" height="6" fill="#3b82f6"/>
+              <text x="495" y="245" text-anchor="middle" class="tbl-hdr" fill="#fff">RA_CUSTOMER_TRX_LINES_ALL</text>
+              <line x1="390" y1="252" x2="600" y2="252" stroke="#93c5fd" stroke-width="0.8"/>
+              <text x="398" y="265" class="tbl-pk" fill="#1e40af">customer_trx_line_id (PK)</text>
+              <text x="398" y="278" class="tbl-row" fill="#1e3a8a">customer_trx_id</text>
+              <text x="398" y="290" class="tbl-row" fill="#1e3a8a">line_number</text>
+              <text x="398" y="302" class="tbl-row" fill="#1e3a8a">quantity</text>
+              <text x="398" y="314" class="tbl-row" fill="#1e3a8a">interface_line_attribute1</text>
+              <text x="398" y="326" class="tbl-row" fill="#1e3a8a">uom_code</text>
+            </g>
+
+            <!-- ─── RA_CUST_TRX_LINE_GL_DIST_ALL ─── -->
+            <g id="ra_gl_dist">
+              <rect x="390" y="385" width="210" height="130" rx="5" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+              <rect x="390" y="385" width="210" height="22" rx="5" fill="#3b82f6"/>
+              <rect x="390" y="401" width="210" height="6" fill="#3b82f6"/>
+              <text x="495" y="400" text-anchor="middle" class="tbl-hdr" fill="#fff">RA_CUST_TRX_LINE_GL_DIST_ALL</text>
+              <line x1="390" y1="407" x2="600" y2="407" stroke="#93c5fd" stroke-width="0.8"/>
+              <text x="398" y="420" class="tbl-pk" fill="#1e40af">cust_trx_line_gl_dist_id (PK)</text>
+              <text x="398" y="433" class="tbl-row" fill="#1e3a8a">customer_trx_id</text>
+              <text x="398" y="445" class="tbl-row" fill="#1e3a8a">amount</text>
+              <text x="398" y="457" class="tbl-row" fill="#1e3a8a">gl_date</text>
+              <text x="398" y="469" class="tbl-row" fill="#1e3a8a">code_combination_id</text>
+              <text x="398" y="481" class="tbl-row" fill="#1e3a8a">account_class</text>
+              <text x="398" y="493" class="tbl-row" fill="#1e3a8a">cust_trx_line_salesrep_id</text>
+            </g>
+
+            <!-- ─── RA_CUST_TRX_LINE_SALESREPS_ALL ─── -->
+            <g id="ra_salesrep">
+              <rect x="390" y="540" width="210" height="110" rx="5" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+              <rect x="390" y="540" width="210" height="22" rx="5" fill="#3b82f6"/>
+              <rect x="390" y="556" width="210" height="6" fill="#3b82f6"/>
+              <text x="495" y="555" text-anchor="middle" class="tbl-hdr" fill="#fff">RA_CUST_TRX_LINE_SALESREPS_ALL</text>
+              <line x1="390" y1="562" x2="600" y2="562" stroke="#93c5fd" stroke-width="0.8"/>
+              <text x="398" y="575" class="tbl-pk" fill="#1e40af">cust_trx_line_salesrep_id (PK)</text>
+              <text x="398" y="588" class="tbl-row" fill="#1e3a8a">customer_trx_id</text>
+              <text x="398" y="600" class="tbl-row" fill="#1e3a8a">customer_trx_line_id</text>
+              <text x="398" y="612" class="tbl-row" fill="#1e3a8a">revenue_amount_split</text>
+              <text x="398" y="624" class="tbl-row" fill="#1e3a8a">non_revenue_amount_split</text>
+            </g>
+
+            <!-- ─── RA_BATCH_SOURCES ─── -->
+            <g id="ra_batch_src">
+              <rect x="630" y="20" width="170" height="70" rx="5" fill="#f1f5f9" stroke="#64748b" stroke-width="1.5"/>
+              <rect x="630" y="20" width="170" height="22" rx="5" fill="#64748b"/>
+              <rect x="630" y="36" width="170" height="6" fill="#64748b"/>
+              <text x="715" y="35" text-anchor="middle" class="tbl-hdr" fill="#fff">RA_BATCH_SOURCES</text>
+              <line x1="630" y1="42" x2="800" y2="42" stroke="#cbd5e1" stroke-width="0.8"/>
+              <text x="638" y="55" class="tbl-pk" fill="#334155">batch_source_id (PK)</text>
+            </g>
+
+            <!-- ─── RA_BATCHES_ALL ─── -->
+            <g id="ra_batches">
+              <rect x="630" y="110" width="170" height="80" rx="5" fill="#f1f5f9" stroke="#64748b" stroke-width="1.5"/>
+              <rect x="630" y="110" width="170" height="22" rx="5" fill="#64748b"/>
+              <rect x="630" y="126" width="170" height="6" fill="#64748b"/>
+              <text x="715" y="125" text-anchor="middle" class="tbl-hdr" fill="#fff">RA_BATCHES_ALL</text>
+              <line x1="630" y1="132" x2="800" y2="132" stroke="#cbd5e1" stroke-width="0.8"/>
+              <text x="638" y="145" class="tbl-pk" fill="#334155">batch_id (PK)</text>
+              <text x="638" y="158" class="tbl-row" fill="#334155">batch_source_id</text>
+            </g>
+
+            <!-- ─── RA_TERMS ─── -->
+            <g id="ra_terms">
+              <rect x="830" y="20" width="160" height="65" rx="5" fill="#f1f5f9" stroke="#64748b" stroke-width="1.5"/>
+              <rect x="830" y="20" width="160" height="22" rx="5" fill="#64748b"/>
+              <rect x="830" y="36" width="160" height="6" fill="#64748b"/>
+              <text x="910" y="35" text-anchor="middle" class="tbl-hdr" fill="#fff">RA_TERMS</text>
+              <line x1="830" y1="42" x2="990" y2="42" stroke="#cbd5e1" stroke-width="0.8"/>
+              <text x="838" y="55" class="tbl-pk" fill="#334155">term_id (PK)</text>
+            </g>
+
+            <!-- ─── AR_PAYMENT_SCHEDULES_ALL ─── -->
+            <g id="ar_pay_sched">
+              <rect x="830" y="105" width="190" height="100" rx="5" fill="#dcfce7" stroke="#22c55e" stroke-width="1.5"/>
+              <rect x="830" y="105" width="190" height="22" rx="5" fill="#22c55e"/>
+              <rect x="830" y="121" width="190" height="6" fill="#22c55e"/>
+              <text x="925" y="120" text-anchor="middle" class="tbl-hdr" fill="#fff">AR_PAYMENT_SCHEDULES_ALL</text>
+              <line x1="830" y1="127" x2="1020" y2="127" stroke="#86efac" stroke-width="0.8"/>
+              <text x="838" y="140" class="tbl-pk" fill="#14532d">payment_schedule_id (PK)</text>
+              <text x="838" y="153" class="tbl-row" fill="#14532d">customer_trx_id</text>
+              <text x="838" y="165" class="tbl-row" fill="#14532d">cash_receipt_id</text>
+            </g>
+
+            <!-- ─── AR_CASH_RECEIPTS_ALL ─── -->
+            <g id="ar_cash_rcpt">
+              <rect x="830" y="225" width="190" height="100" rx="5" fill="#dcfce7" stroke="#22c55e" stroke-width="1.5"/>
+              <rect x="830" y="225" width="190" height="22" rx="5" fill="#22c55e"/>
+              <rect x="830" y="241" width="190" height="6" fill="#22c55e"/>
+              <text x="925" y="240" text-anchor="middle" class="tbl-hdr" fill="#fff">AR_CASH_RECEIPTS_ALL</text>
+              <line x1="830" y1="247" x2="1020" y2="247" stroke="#86efac" stroke-width="0.8"/>
+              <text x="838" y="260" class="tbl-pk" fill="#14532d">cash_receipt_id (PK)</text>
+              <text x="838" y="273" class="tbl-row" fill="#14532d">receipt_number</text>
+              <text x="838" y="285" class="tbl-row" fill="#14532d">set_of_books_id</text>
+            </g>
+
+            <!-- ─── AR_CASH_RECEIPT_HISTORY_ALL ─── -->
+            <g id="ar_rcpt_hist">
+              <rect x="830" y="345" width="190" height="100" rx="5" fill="#dcfce7" stroke="#22c55e" stroke-width="1.5"/>
+              <rect x="830" y="345" width="190" height="22" rx="5" fill="#22c55e"/>
+              <rect x="830" y="361" width="190" height="6" fill="#22c55e"/>
+              <text x="925" y="360" text-anchor="middle" class="tbl-hdr" fill="#fff">AR_CASH_RECEIPT_HISTORY_ALL</text>
+              <line x1="830" y1="367" x2="1020" y2="367" stroke="#86efac" stroke-width="0.8"/>
+              <text x="838" y="380" class="tbl-pk" fill="#14532d">cash_receipt_history_id (PK)</text>
+              <text x="838" y="393" class="tbl-row" fill="#14532d">cash_receipt_id</text>
+              <text x="838" y="405" class="tbl-row" fill="#14532d">batch_id</text>
+            </g>
+
+            <!-- ─── AR_RECEIVABLE_APPLICATIONS_ALL ─── -->
+            <g id="ar_recv_app">
+              <rect x="830" y="465" width="190" height="130" rx="5" fill="#dcfce7" stroke="#22c55e" stroke-width="1.5"/>
+              <rect x="830" y="465" width="190" height="22" rx="5" fill="#22c55e"/>
+              <rect x="830" y="481" width="190" height="6" fill="#22c55e"/>
+              <text x="925" y="480" text-anchor="middle" class="tbl-hdr" fill="#fff">AR_RECEIVABLE_APPLICATIONS_ALL</text>
+              <line x1="830" y1="487" x2="1020" y2="487" stroke="#86efac" stroke-width="0.8"/>
+              <text x="838" y="500" class="tbl-pk" fill="#14532d">receivable_application_id (PK)</text>
+              <text x="838" y="513" class="tbl-row" fill="#14532d">customer_trx_id</text>
+              <text x="838" y="525" class="tbl-row" fill="#14532d">code_combination_id</text>
+              <text x="838" y="537" class="tbl-row" fill="#14532d">status</text>
+              <text x="838" y="549" class="tbl-row" fill="#14532d">payment_schedule_id</text>
+              <text x="838" y="561" class="tbl-row" fill="#14532d">cash_receipt_id</text>
+            </g>
+
+            <!-- ─── AR_RECEIVABLES_TRX_ALL ─── -->
+            <g id="ar_recv_trx">
+              <rect x="830" y="615" width="190" height="80" rx="5" fill="#dcfce7" stroke="#22c55e" stroke-width="1.5"/>
+              <rect x="830" y="615" width="190" height="22" rx="5" fill="#22c55e"/>
+              <rect x="830" y="631" width="190" height="6" fill="#22c55e"/>
+              <text x="925" y="630" text-anchor="middle" class="tbl-hdr" fill="#fff">AR_RECEIVABLES_TRX_ALL</text>
+              <line x1="830" y1="637" x2="1020" y2="637" stroke="#86efac" stroke-width="0.8"/>
+              <text x="838" y="650" class="tbl-pk" fill="#14532d">receivables_trx_id (PK)</text>
+              <text x="838" y="663" class="tbl-row" fill="#14532d">code_combination_id</text>
+            </g>
+
+            <!-- ─── AR_ADJUSTMENTS ─── -->
+            <g id="ar_adj">
+              <rect x="630" y="720" width="190" height="90" rx="5" fill="#dcfce7" stroke="#22c55e" stroke-width="1.5"/>
+              <rect x="630" y="720" width="190" height="22" rx="5" fill="#22c55e"/>
+              <rect x="630" y="736" width="190" height="6" fill="#22c55e"/>
+              <text x="725" y="735" text-anchor="middle" class="tbl-hdr" fill="#fff">AR_ADJUSTMENTS</text>
+              <line x1="630" y1="742" x2="820" y2="742" stroke="#86efac" stroke-width="0.8"/>
+              <text x="638" y="755" class="tbl-pk" fill="#14532d">adjustment_id (PK)</text>
+              <text x="638" y="768" class="tbl-row" fill="#14532d">customer_trx_id</text>
+              <text x="638" y="780" class="tbl-row" fill="#14532d">code_combination_id</text>
+            </g>
+
+            <!-- ─── AR_CONS_INV_ALL ─── -->
+            <g id="ar_cons_inv">
+              <rect x="630" y="230" width="180" height="90" rx="5" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+              <rect x="630" y="230" width="180" height="22" rx="5" fill="#3b82f6"/>
+              <rect x="630" y="246" width="180" height="6" fill="#3b82f6"/>
+              <text x="720" y="245" text-anchor="middle" class="tbl-hdr" fill="#fff">AR_CONS_INV_ALL</text>
+              <line x1="630" y1="252" x2="810" y2="252" stroke="#93c5fd" stroke-width="0.8"/>
+              <text x="638" y="265" class="tbl-pk" fill="#1e40af">cons_inv_id (PK)</text>
+              <text x="638" y="278" class="tbl-row" fill="#1e3a8a">cons_billing_number</text>
+              <text x="638" y="290" class="tbl-row" fill="#1e3a8a">customer_id</text>
+              <text x="638" y="302" class="tbl-row" fill="#1e3a8a">site_use_id</text>
+            </g>
+
+            <!-- ─── AR_CONS_INV_TRX_ALL ─── -->
+            <g id="ar_cons_inv_trx">
+              <rect x="630" y="345" width="180" height="80" rx="5" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+              <rect x="630" y="345" width="180" height="22" rx="5" fill="#3b82f6"/>
+              <rect x="630" y="361" width="180" height="6" fill="#3b82f6"/>
+              <text x="720" y="360" text-anchor="middle" class="tbl-hdr" fill="#fff">AR_CONS_INV_TRX_ALL</text>
+              <line x1="630" y1="367" x2="810" y2="367" stroke="#93c5fd" stroke-width="0.8"/>
+              <text x="638" y="380" class="tbl-pk" fill="#1e40af">cons_inv_id (PK)</text>
+              <text x="638" y="393" class="tbl-row" fill="#1e3a8a">customer_id</text>
+              <text x="638" y="405" class="tbl-row" fill="#1e3a8a">site_use_id</text>
+            </g>
+
+            <!-- ─── AR_CREDIT_MEMO_AMOUNTS ─── -->
+            <g id="ar_cm_amt">
+              <rect x="630" y="450" width="180" height="80" rx="5" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+              <rect x="630" y="450" width="180" height="22" rx="5" fill="#3b82f6"/>
+              <rect x="630" y="466" width="180" height="6" fill="#3b82f6"/>
+              <text x="720" y="465" text-anchor="middle" class="tbl-hdr" fill="#fff">AR_CREDIT_MEMO_AMOUNTS</text>
+              <line x1="630" y1="472" x2="810" y2="472" stroke="#93c5fd" stroke-width="0.8"/>
+              <text x="638" y="485" class="tbl-pk" fill="#1e40af">credit_memo_amount_id (PK)</text>
+              <text x="638" y="498" class="tbl-row" fill="#1e3a8a">customer_trx_line_id</text>
+              <text x="638" y="510" class="tbl-row" fill="#1e3a8a">amount</text>
+            </g>
+
+            <!-- ─── AR_MISC_CASH_DISTRIBUTIONS ─── -->
+            <g id="ar_misc_cash">
+              <rect x="630" y="555" width="180" height="95" rx="5" fill="#dcfce7" stroke="#22c55e" stroke-width="1.5"/>
+              <rect x="630" y="555" width="180" height="22" rx="5" fill="#22c55e"/>
+              <rect x="630" y="571" width="180" height="6" fill="#22c55e"/>
+              <text x="720" y="570" text-anchor="middle" class="tbl-hdr" fill="#fff">AR_MISC_CASH_DISTRIBUTIONS</text>
+              <line x1="630" y1="577" x2="810" y2="577" stroke="#86efac" stroke-width="0.8"/>
+              <text x="638" y="590" class="tbl-pk" fill="#14532d">misc_cash_distribution_id (PK)</text>
+              <text x="638" y="603" class="tbl-row" fill="#14532d">cash_receipt_id</text>
+              <text x="638" y="615" class="tbl-row" fill="#14532d">cash_receipt_history_id</text>
+            </g>
+
+            <!-- ─── HZ_PARTIES ─── -->
+            <g id="hz_parties">
+              <rect x="160" y="20" width="175" height="100" rx="5" fill="#fef9c3" stroke="#eab308" stroke-width="1.5"/>
+              <rect x="160" y="20" width="175" height="22" rx="5" fill="#eab308"/>
+              <rect x="160" y="36" width="175" height="6" fill="#eab308"/>
+              <text x="247" y="35" text-anchor="middle" class="tbl-hdr" fill="#fff">HZ_PARTIES</text>
+              <line x1="160" y1="42" x2="335" y2="42" stroke="#fde68a" stroke-width="0.8"/>
+              <text x="168" y="55" class="tbl-pk" fill="#713f12">party_id (PK)</text>
+              <text x="168" y="68" class="tbl-row" fill="#713f12">party_type</text>
+              <text x="168" y="80" class="tbl-row" fill="#713f12">party_number</text>
+              <text x="168" y="92" class="tbl-row" fill="#713f12">party_name</text>
+            </g>
+
+            <!-- ─── HZ_PARTY_SITES ─── -->
+            <g id="hz_party_sites">
+              <rect x="160" y="140" width="175" height="90" rx="5" fill="#fef9c3" stroke="#eab308" stroke-width="1.5"/>
+              <rect x="160" y="140" width="175" height="22" rx="5" fill="#eab308"/>
+              <rect x="160" y="156" width="175" height="6" fill="#eab308"/>
+              <text x="247" y="155" text-anchor="middle" class="tbl-hdr" fill="#fff">HZ_PARTY_SITES</text>
+              <line x1="160" y1="162" x2="335" y2="162" stroke="#fde68a" stroke-width="0.8"/>
+              <text x="168" y="175" class="tbl-pk" fill="#713f12">party_site_id (PK)</text>
+              <text x="168" y="188" class="tbl-row" fill="#713f12">party_id</text>
+              <text x="168" y="200" class="tbl-row" fill="#713f12">location_id</text>
+              <text x="168" y="212" class="tbl-row" fill="#713f12">party_site_name</text>
+            </g>
+
+            <!-- ─── HZ_CUST_ACCOUNTS ─── -->
+            <g id="hz_cust_acct">
+              <rect x="160" y="250" width="175" height="80" rx="5" fill="#fef9c3" stroke="#eab308" stroke-width="1.5"/>
+              <rect x="160" y="250" width="175" height="22" rx="5" fill="#eab308"/>
+              <rect x="160" y="266" width="175" height="6" fill="#eab308"/>
+              <text x="247" y="265" text-anchor="middle" class="tbl-hdr" fill="#fff">HZ_CUST_ACCOUNTS</text>
+              <line x1="160" y1="272" x2="335" y2="272" stroke="#fde68a" stroke-width="0.8"/>
+              <text x="168" y="285" class="tbl-pk" fill="#713f12">cust_account_id (PK)</text>
+              <text x="168" y="298" class="tbl-row" fill="#713f12">party_id</text>
+              <text x="168" y="310" class="tbl-row" fill="#713f12">account_number</text>
+            </g>
+
+            <!-- ─── HZ_CUST_ACCT_SITES_ALL ─── -->
+            <g id="hz_cust_acct_sites">
+              <rect x="160" y="350" width="175" height="80" rx="5" fill="#fef9c3" stroke="#eab308" stroke-width="1.5"/>
+              <rect x="160" y="350" width="175" height="22" rx="5" fill="#eab308"/>
+              <rect x="160" y="366" width="175" height="6" fill="#eab308"/>
+              <text x="247" y="365" text-anchor="middle" class="tbl-hdr" fill="#fff">HZ_CUST_ACCT_SITES_ALL</text>
+              <line x1="160" y1="372" x2="335" y2="372" stroke="#fde68a" stroke-width="0.8"/>
+              <text x="168" y="385" class="tbl-pk" fill="#713f12">cust_acct_site_id (PK)</text>
+              <text x="168" y="398" class="tbl-row" fill="#713f12">cust_account_id</text>
+              <text x="168" y="410" class="tbl-row" fill="#713f12">party_site_id</text>
+            </g>
+
+            <!-- ─── HZ_CUST_SITE_USES_ALL ─── -->
+            <g id="hz_site_uses">
+              <rect x="160" y="450" width="175" height="90" rx="5" fill="#fef9c3" stroke="#eab308" stroke-width="1.5"/>
+              <rect x="160" y="450" width="175" height="22" rx="5" fill="#eab308"/>
+              <rect x="160" y="466" width="175" height="6" fill="#eab308"/>
+              <text x="247" y="465" text-anchor="middle" class="tbl-hdr" fill="#fff">HZ_CUST_SITE_USES_ALL</text>
+              <line x1="160" y1="472" x2="335" y2="472" stroke="#fde68a" stroke-width="0.8"/>
+              <text x="168" y="485" class="tbl-pk" fill="#713f12">site_use_id (PK)</text>
+              <text x="168" y="498" class="tbl-row" fill="#713f12">site_use_code</text>
+              <text x="168" y="510" class="tbl-row" fill="#713f12">cust_acct_site_id</text>
+            </g>
+
+            <!-- ─── HZ_LOCATIONS ─── -->
+            <g id="hz_loc">
+              <rect x="160" y="560" width="175" height="80" rx="5" fill="#fef9c3" stroke="#eab308" stroke-width="1.5"/>
+              <rect x="160" y="560" width="175" height="22" rx="5" fill="#eab308"/>
+              <rect x="160" y="576" width="175" height="6" fill="#eab308"/>
+              <text x="247" y="575" text-anchor="middle" class="tbl-hdr" fill="#fff">HZ_LOCATIONS</text>
+              <line x1="160" y1="582" x2="335" y2="582" stroke="#fde68a" stroke-width="0.8"/>
+              <text x="168" y="595" class="tbl-pk" fill="#713f12">location_id (PK)</text>
+              <text x="168" y="608" class="tbl-row" fill="#713f12">address1</text>
+              <text x="168" y="620" class="tbl-row" fill="#713f12">address2</text>
+            </g>
+
+            <!-- ─── HR_OPERATING_UNITS ─── -->
+            <g id="hr_ou">
+              <rect x="10" y="20" width="135" height="68" rx="5" fill="#f1f5f9" stroke="#64748b" stroke-width="1.5"/>
+              <rect x="10" y="20" width="135" height="22" rx="5" fill="#64748b"/>
+              <rect x="10" y="36" width="135" height="6" fill="#64748b"/>
+              <text x="77" y="35" text-anchor="middle" class="tbl-hdr" fill="#fff">HR_OPERATING_UNITS</text>
+              <line x1="10" y1="42" x2="145" y2="42" stroke="#cbd5e1" stroke-width="0.8"/>
+              <text x="18" y="55" class="tbl-pk" fill="#334155">organization_id (PK)</text>
+              <text x="18" y="68" class="tbl-row" fill="#334155">name</text>
+            </g>
+
+            <!-- ─── OE_ORDER_HEADERS_ALL ─── -->
+            <g id="oe_hdr">
+              <rect x="10" y="110" width="135" height="130" rx="5" fill="#ede9fe" stroke="#8b5cf6" stroke-width="1.5"/>
+              <rect x="10" y="110" width="135" height="22" rx="5" fill="#8b5cf6"/>
+              <rect x="10" y="126" width="135" height="6" fill="#8b5cf6"/>
+              <text x="77" y="125" text-anchor="middle" class="tbl-hdr" fill="#fff">OE_ORDER_HEADERS_ALL</text>
+              <line x1="10" y1="132" x2="145" y2="132" stroke="#c4b5fd" stroke-width="0.8"/>
+              <text x="18" y="145" class="tbl-pk" fill="#4c1d95">header_id (PK)</text>
+              <text x="18" y="158" class="tbl-row" fill="#4c1d95">org_id</text>
+              <text x="18" y="170" class="tbl-row" fill="#4c1d95">order_number</text>
+              <text x="18" y="182" class="tbl-row" fill="#4c1d95">order_source_id</text>
+              <text x="18" y="194" class="tbl-row" fill="#4c1d95">order_type_id</text>
+              <text x="18" y="206" class="tbl-row" fill="#4c1d95">sold_to_org_id</text>
+              <text x="18" y="218" class="tbl-row" fill="#4c1d95">payment_term_id</text>
+            </g>
+
+            <!-- ─── OE_ORDER_LINES_ALL ─── -->
+            <g id="oe_lines">
+              <rect x="10" y="260" width="135" height="130" rx="5" fill="#ede9fe" stroke="#8b5cf6" stroke-width="1.5"/>
+              <rect x="10" y="260" width="135" height="22" rx="5" fill="#8b5cf6"/>
+              <rect x="10" y="276" width="135" height="6" fill="#8b5cf6"/>
+              <text x="77" y="275" text-anchor="middle" class="tbl-hdr" fill="#fff">OE_ORDER_LINES_ALL</text>
+              <line x1="10" y1="282" x2="145" y2="282" stroke="#c4b5fd" stroke-width="0.8"/>
+              <text x="18" y="295" class="tbl-pk" fill="#4c1d95">line_id (PK)</text>
+              <text x="18" y="308" class="tbl-row" fill="#4c1d95">header_id</text>
+              <text x="18" y="320" class="tbl-row" fill="#4c1d95">org_id</text>
+              <text x="18" y="332" class="tbl-row" fill="#4c1d95">ordered_item</text>
+              <text x="18" y="344" class="tbl-row" fill="#4c1d95">ordered_quantity</text>
+              <text x="18" y="356" class="tbl-row" fill="#4c1d95">item_type_code</text>
+              <text x="18" y="368" class="tbl-row" fill="#4c1d95">line_type_id</text>
+            </g>
+
+            <!-- ─── XLA_EVENTS ─── -->
+            <g id="xla_events">
+              <rect x="1050" y="20" width="170" height="95" rx="5" fill="#fce7f3" stroke="#ec4899" stroke-width="1.5"/>
+              <rect x="1050" y="20" width="170" height="22" rx="5" fill="#ec4899"/>
+              <rect x="1050" y="36" width="170" height="6" fill="#ec4899"/>
+              <text x="1135" y="35" text-anchor="middle" class="tbl-hdr" fill="#fff">XLA_EVENTS</text>
+              <line x1="1050" y1="42" x2="1220" y2="42" stroke="#fbcfe8" stroke-width="0.8"/>
+              <text x="1058" y="55" class="tbl-pk" fill="#831843">event_id (PK)</text>
+              <text x="1058" y="68" class="tbl-row" fill="#831843">event_type_code</text>
+              <text x="1058" y="80" class="tbl-row" fill="#831843">entity_id</text>
+              <text x="1058" y="92" class="tbl-row" fill="#831843">event_date</text>
+            </g>
+
+            <!-- ─── XLA_AE_HEADERS ─── -->
+            <g id="xla_ae_hdr">
+              <rect x="1050" y="135" width="170" height="95" rx="5" fill="#fce7f3" stroke="#ec4899" stroke-width="1.5"/>
+              <rect x="1050" y="135" width="170" height="22" rx="5" fill="#ec4899"/>
+              <rect x="1050" y="151" width="170" height="6" fill="#ec4899"/>
+              <text x="1135" y="150" text-anchor="middle" class="tbl-hdr" fill="#fff">XLA_AE_HEADERS</text>
+              <line x1="1050" y1="157" x2="1220" y2="157" stroke="#fbcfe8" stroke-width="0.8"/>
+              <text x="1058" y="170" class="tbl-pk" fill="#831843">ae_header_id (PK)</text>
+              <text x="1058" y="183" class="tbl-row" fill="#831843">ledger_id</text>
+              <text x="1058" y="195" class="tbl-row" fill="#831843">entity_id</text>
+              <text x="1058" y="207" class="tbl-row" fill="#831843">event_id</text>
+              <text x="1058" y="219" class="tbl-row" fill="#831843">entity_type_code</text>
+            </g>
+
+            <!-- ─── XLA_AE_LINES ─── -->
+            <g id="xla_ae_lines">
+              <rect x="1050" y="250" width="170" height="100" rx="5" fill="#fce7f3" stroke="#ec4899" stroke-width="1.5"/>
+              <rect x="1050" y="250" width="170" height="22" rx="5" fill="#ec4899"/>
+              <rect x="1050" y="266" width="170" height="6" fill="#ec4899"/>
+              <text x="1135" y="265" text-anchor="middle" class="tbl-hdr" fill="#fff">XLA_AE_LINES</text>
+              <line x1="1050" y1="272" x2="1220" y2="272" stroke="#fbcfe8" stroke-width="0.8"/>
+              <text x="1058" y="285" class="tbl-pk" fill="#831843">line_id (PK)</text>
+              <text x="1058" y="298" class="tbl-row" fill="#831843">ae_line_num</text>
+              <text x="1058" y="310" class="tbl-row" fill="#831843">code_combination_id</text>
+              <text x="1058" y="322" class="tbl-row" fill="#831843">ae_header_id</text>
+              <text x="1058" y="334" class="tbl-row" fill="#831843">gl_sl_link_id</text>
+            </g>
+
+            <!-- ─── XLA_DISTRIBUTION_LINKS ─── -->
+            <g id="xla_dist_links">
+              <rect x="1050" y="370" width="170" height="90" rx="5" fill="#fce7f3" stroke="#ec4899" stroke-width="1.5"/>
+              <rect x="1050" y="370" width="170" height="22" rx="5" fill="#ec4899"/>
+              <rect x="1050" y="386" width="170" height="6" fill="#ec4899"/>
+              <text x="1135" y="385" text-anchor="middle" class="tbl-hdr" fill="#fff">XLA_DISTRIBUTION_LINKS</text>
+              <line x1="1050" y1="392" x2="1220" y2="392" stroke="#fbcfe8" stroke-width="0.8"/>
+              <text x="1058" y="405" class="tbl-pk" fill="#831843">ae_header_id</text>
+              <text x="1058" y="418" class="tbl-row" fill="#831843">event_header_id</text>
+              <text x="1058" y="430" class="tbl-row" fill="#831843">event_id</text>
+            </g>
+
+            <!-- ─── XLA_TRANSACTION_ENTITIES ─── -->
+            <g id="xla_trx_ent">
+              <rect x="1050" y="480" width="170" height="105" rx="5" fill="#fce7f3" stroke="#ec4899" stroke-width="1.5"/>
+              <rect x="1050" y="480" width="170" height="22" rx="5" fill="#ec4899"/>
+              <rect x="1050" y="496" width="170" height="6" fill="#ec4899"/>
+              <text x="1135" y="495" text-anchor="middle" class="tbl-hdr" fill="#fff">XLA_TRANSACTION_ENTITIES</text>
+              <line x1="1050" y1="502" x2="1220" y2="502" stroke="#fbcfe8" stroke-width="0.8"/>
+              <text x="1058" y="515" class="tbl-pk" fill="#831843">entity_id</text>
+              <text x="1058" y="528" class="tbl-row" fill="#831843">legal_entity_id</text>
+              <text x="1058" y="540" class="tbl-row" fill="#831843">entity_code</text>
+              <text x="1058" y="552" class="tbl-row" fill="#831843">application_id</text>
+              <text x="1058" y="564" class="tbl-row" fill="#831843">source_id_int_1</text>
+            </g>
+
+            <!-- ─── GL_JE_HEADERS ─── -->
+            <g id="gl_je_hdr">
+              <rect x="1240" y="20" width="155" height="100" rx="5" fill="#ede9fe" stroke="#8b5cf6" stroke-width="1.5"/>
+              <rect x="1240" y="20" width="155" height="22" rx="5" fill="#8b5cf6"/>
+              <rect x="1240" y="36" width="155" height="6" fill="#8b5cf6"/>
+              <text x="1317" y="35" text-anchor="middle" class="tbl-hdr" fill="#fff">GL_JE_HEADERS</text>
+              <line x1="1240" y1="42" x2="1395" y2="42" stroke="#c4b5fd" stroke-width="0.8"/>
+              <text x="1248" y="55" class="tbl-pk" fill="#4c1d95">je_header_id (PK)</text>
+              <text x="1248" y="68" class="tbl-row" fill="#4c1d95">ledger_id</text>
+              <text x="1248" y="80" class="tbl-row" fill="#4c1d95">period_name</text>
+              <text x="1248" y="92" class="tbl-row" fill="#4c1d95">currency_code</text>
+              <text x="1248" y="104" class="tbl-row" fill="#4c1d95">status</text>
+            </g>
+
+            <!-- ─── GL_JE_LINES ─── -->
+            <g id="gl_je_lines">
+              <rect x="1240" y="140" width="155" height="100" rx="5" fill="#ede9fe" stroke="#8b5cf6" stroke-width="1.5"/>
+              <rect x="1240" y="140" width="155" height="22" rx="5" fill="#8b5cf6"/>
+              <rect x="1240" y="156" width="155" height="6" fill="#8b5cf6"/>
+              <text x="1317" y="155" text-anchor="middle" class="tbl-hdr" fill="#fff">GL_JE_LINES</text>
+              <line x1="1240" y1="162" x2="1395" y2="162" stroke="#c4b5fd" stroke-width="0.8"/>
+              <text x="1248" y="175" class="tbl-pk" fill="#4c1d95">je_header_id</text>
+              <text x="1248" y="188" class="tbl-row" fill="#4c1d95">je_line_num</text>
+              <text x="1248" y="200" class="tbl-row" fill="#4c1d95">ledger_id</text>
+              <text x="1248" y="212" class="tbl-row" fill="#4c1d95">period_name</text>
+              <text x="1248" y="224" class="tbl-row" fill="#4c1d95">code_combination_id</text>
+            </g>
+
+            <!-- ─── GL_CODE_COMBINATIONS ─── -->
+            <g id="gl_cc">
+              <rect x="1240" y="260" width="155" height="90" rx="5" fill="#ede9fe" stroke="#8b5cf6" stroke-width="1.5"/>
+              <rect x="1240" y="260" width="155" height="22" rx="5" fill="#8b5cf6"/>
+              <rect x="1240" y="276" width="155" height="6" fill="#8b5cf6"/>
+              <text x="1317" y="275" text-anchor="middle" class="tbl-hdr" fill="#fff">GL_CODE_COMBINATIONS</text>
+              <line x1="1240" y1="282" x2="1395" y2="282" stroke="#c4b5fd" stroke-width="0.8"/>
+              <text x="1248" y="295" class="tbl-pk" fill="#4c1d95">code_combination_id (PK)</text>
+              <text x="1248" y="308" class="tbl-row" fill="#4c1d95">chart_of_accounts_id</text>
+              <text x="1248" y="320" class="tbl-row" fill="#4c1d95">account_type</text>
+            </g>
+
+            <!-- ─── GL_IMPORT_REFERENCES ─── -->
+            <g id="gl_import_ref">
+              <rect x="1240" y="370" width="155" height="90" rx="5" fill="#ede9fe" stroke="#8b5cf6" stroke-width="1.5"/>
+              <rect x="1240" y="370" width="155" height="22" rx="5" fill="#8b5cf6"/>
+              <rect x="1240" y="386" width="155" height="6" fill="#8b5cf6"/>
+              <text x="1317" y="385" text-anchor="middle" class="tbl-hdr" fill="#fff">GL_IMPORT_REFERENCES</text>
+              <line x1="1240" y1="392" x2="1395" y2="392" stroke="#c4b5fd" stroke-width="0.8"/>
+              <text x="1248" y="405" class="tbl-pk" fill="#4c1d95">je_batch_id</text>
+              <text x="1248" y="418" class="tbl-row" fill="#4c1d95">je_header_id</text>
+              <text x="1248" y="430" class="tbl-row" fill="#4c1d95">je_line_num</text>
+              <text x="1248" y="442" class="tbl-row" fill="#4c1d95">gl_sl_link_id</text>
+            </g>
+
+            <!-- ─── GL_PERIODS ─── -->
+            <g id="gl_periods">
+              <rect x="1240" y="480" width="155" height="70" rx="5" fill="#ede9fe" stroke="#8b5cf6" stroke-width="1.5"/>
+              <rect x="1240" y="480" width="155" height="22" rx="5" fill="#8b5cf6"/>
+              <rect x="1240" y="496" width="155" height="6" fill="#8b5cf6"/>
+              <text x="1317" y="495" text-anchor="middle" class="tbl-hdr" fill="#fff">GL_PERIODS</text>
+              <line x1="1240" y1="502" x2="1395" y2="502" stroke="#c4b5fd" stroke-width="0.8"/>
+              <text x="1248" y="515" class="tbl-pk" fill="#4c1d95">period_name</text>
+              <text x="1248" y="528" class="tbl-row" fill="#4c1d95">period_type</text>
+            </g>
+
+            <!-- ─── GL_PERIOD_STATUSES ─── -->
+            <g id="gl_period_stat">
+              <rect x="1240" y="570" width="155" height="70" rx="5" fill="#ede9fe" stroke="#8b5cf6" stroke-width="1.5"/>
+              <rect x="1240" y="570" width="155" height="22" rx="5" fill="#8b5cf6"/>
+              <rect x="1240" y="586" width="155" height="6" fill="#8b5cf6"/>
+              <text x="1317" y="585" text-anchor="middle" class="tbl-hdr" fill="#fff">GL_PERIOD_STATUSES</text>
+              <line x1="1240" y1="592" x2="1395" y2="592" stroke="#c4b5fd" stroke-width="0.8"/>
+              <text x="1248" y="605" class="tbl-pk" fill="#4c1d95">application_id</text>
+              <text x="1248" y="618" class="tbl-row" fill="#4c1d95">period_name</text>
+            </g>
+
+            <!-- ══════════ 연결선 ══════════ -->
+
+            <!-- OE_ORDER_HEADERS → RA_CUSTOMER_TRX_ALL -->
+            <line x1="145" y1="170" x2="390" y2="100" class="conn"/>
+            <!-- OE_ORDER_LINES → OE_ORDER_HEADERS -->
+            <line x1="77" y1="260" x2="77" y2="240" class="conn"/>
+            <!-- HZ_PARTIES → RA_CUSTOMER_TRX_ALL -->
+            <line x1="335" y1="65" x2="390" y2="80" class="conn"/>
+            <!-- HZ_PARTY_SITES → HZ_PARTIES -->
+            <line x1="247" y1="140" x2="247" y2="120" class="conn"/>
+            <!-- HZ_CUST_ACCOUNTS → HZ_PARTIES -->
+            <line x1="247" y1="250" x2="247" y2="230" class="conn"/>
+            <!-- HZ_CUST_ACCT_SITES_ALL → HZ_CUST_ACCOUNTS -->
+            <line x1="247" y1="350" x2="247" y2="330" class="conn"/>
+            <!-- HZ_CUST_SITE_USES_ALL → HZ_CUST_ACCT_SITES_ALL -->
+            <line x1="247" y1="450" x2="247" y2="430" class="conn"/>
+            <!-- HZ_LOCATIONS → HZ_PARTY_SITES -->
+            <line x1="247" y1="560" x2="247" y2="540" class="conn"/>
+            <!-- RA_CUSTOMER_TRX_ALL → RA_CUSTOMER_TRX_LINES_ALL -->
+            <line x1="495" y1="210" x2="495" y2="230" class="conn"/>
+            <!-- RA_CUSTOMER_TRX_LINES_ALL → RA_CUST_TRX_LINE_GL_DIST_ALL -->
+            <line x1="495" y1="360" x2="495" y2="385" class="conn"/>
+            <!-- RA_CUST_TRX_LINE_GL_DIST_ALL → RA_CUST_TRX_LINE_SALESREPS_ALL -->
+            <line x1="495" y1="515" x2="495" y2="540" class="conn"/>
+            <!-- RA_BATCH_SOURCES → RA_CUSTOMER_TRX_ALL -->
+            <line x1="630" y1="45" x2="600" y2="60" class="conn"/>
+            <!-- RA_BATCHES_ALL → RA_CUSTOMER_TRX_ALL -->
+            <line x1="630" y1="150" x2="600" y2="130" class="conn"/>
+            <!-- RA_TERMS → RA_CUSTOMER_TRX_ALL -->
+            <line x1="830" y1="45" x2="600" y2="70" class="conn"/>
+            <!-- AR_PAYMENT_SCHEDULES_ALL → RA_CUSTOMER_TRX_ALL -->
+            <line x1="830" y1="150" x2="600" y2="110" class="conn"/>
+            <!-- AR_CASH_RECEIPTS_ALL → AR_PAYMENT_SCHEDULES_ALL -->
+            <line x1="925" y1="225" x2="925" y2="205" class="conn"/>
+            <!-- AR_CASH_RECEIPT_HISTORY_ALL → AR_CASH_RECEIPTS_ALL -->
+            <line x1="925" y1="345" x2="925" y2="325" class="conn"/>
+            <!-- AR_RECEIVABLE_APPLICATIONS_ALL → RA_CUSTOMER_TRX_ALL -->
+            <line x1="830" y1="520" x2="600" y2="180" class="conn"/>
+            <!-- AR_RECEIVABLE_APPLICATIONS_ALL → AR_CASH_RECEIPTS_ALL -->
+            <line x1="925" y1="465" x2="925" y2="325" class="conn"/>
+            <!-- AR_CONS_INV_ALL → RA_CUSTOMER_TRX_ALL -->
+            <line x1="720" y1="230" x2="600" y2="170" class="conn"/>
+            <!-- AR_CONS_INV_TRX_ALL → AR_CONS_INV_ALL -->
+            <line x1="720" y1="345" x2="720" y2="320" class="conn"/>
+            <!-- AR_CREDIT_MEMO_AMOUNTS → RA_CUSTOMER_TRX_LINES_ALL -->
+            <line x1="720" y1="450" x2="600" y2="300" class="conn"/>
+            <!-- AR_MISC_CASH_DISTRIBUTIONS → AR_CASH_RECEIPTS_ALL -->
+            <line x1="810" y1="590" x2="830" y2="280" class="conn"/>
+            <!-- AR_ADJUSTMENTS → RA_CUSTOMER_TRX_ALL -->
+            <line x1="720" y1="720" x2="600" y2="200" class="conn"/>
+            <!-- XLA_EVENTS → XLA_AE_HEADERS -->
+            <line x1="1135" y1="115" x2="1135" y2="135" class="conn"/>
+            <!-- XLA_AE_HEADERS → XLA_AE_LINES -->
+            <line x1="1135" y1="230" x2="1135" y2="250" class="conn"/>
+            <!-- XLA_AE_LINES → XLA_DISTRIBUTION_LINKS -->
+            <line x1="1135" y1="350" x2="1135" y2="370" class="conn"/>
+            <!-- XLA_TRANSACTION_ENTITIES → XLA_EVENTS -->
+            <line x1="1135" y1="480" x2="1135" y2="115" stroke="#ec4899" stroke-width="1.2" fill="none" marker-end="url(#arr)" stroke-dasharray="4,3"/>
+            <!-- XLA_AE_HEADERS → GL_JE_HEADERS -->
+            <line x1="1220" y1="170" x2="1240" y2="70" class="conn"/>
+            <!-- XLA_AE_LINES → GL_JE_LINES -->
+            <line x1="1220" y1="300" x2="1240" y2="195" class="conn"/>
+            <!-- XLA_AE_LINES → GL_CODE_COMBINATIONS -->
+            <line x1="1220" y1="320" x2="1240" y2="295" class="conn"/>
+            <!-- XLA_DISTRIBUTION_LINKS → GL_IMPORT_REFERENCES -->
+            <line x1="1220" y1="415" x2="1240" y2="415" class="conn"/>
+            <!-- RA_CUST_TRX_LINE_GL_DIST_ALL → XLA_AE_LINES -->
+            <line x1="600" y1="450" x2="1050" y2="310" stroke="#64748b" stroke-width="1" fill="none" stroke-dasharray="5,3" marker-end="url(#arr)"/>
+            <!-- AR_CASH_RECEIPTS_ALL → XLA_TRANSACTION_ENTITIES -->
+            <line x1="1020" y1="270" x2="1050" y2="530" class="conn"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- 테이블 설명 -->
+      <div style="margin-top:24px;">
+        <h3 style="font-size:15px;font-weight:600;margin-bottom:14px;color:var(--text-primary);">📋 주요 테이블 설명</h3>
+        <div class="content-card">
+          <div class="content-card-body" style="padding:0;">
+            <table class="field-table">
+              <thead><tr><th style="width:220px;">테이블명</th><th style="width:80px;">그룹</th><th>설명</th></tr></thead>
+              <tbody>
+                <tr><td><strong>RA_CUSTOMER_TRX_ALL</strong></td><td><span class="badge" style="background:#dbeafe;color:#1e40af;">거래</span></td><td>AR 인보이스, 크레딧 메모 등 모든 AR 트랜잭션 헤더 정보를 저장하는 핵심 테이블</td></tr>
+                <tr><td><strong>RA_CUSTOMER_TRX_LINES_ALL</strong></td><td><span class="badge" style="background:#dbeafe;color:#1e40af;">거래</span></td><td>인보이스 라인(품목, 수량, 단가) 정보. 헤더 1건에 다수 라인 연결</td></tr>
+                <tr><td><strong>RA_CUST_TRX_LINE_GL_DIST_ALL</strong></td><td><span class="badge" style="background:#dbeafe;color:#1e40af;">거래</span></td><td>인보이스 라인의 GL 계정 배분 정보 (차변/대변 계정, 금액)</td></tr>
+                <tr><td><strong>AR_PAYMENT_SCHEDULES_ALL</strong></td><td><span class="badge" style="background:#dcfce7;color:#166534;">수금</span></td><td>인보이스별 결제 일정 및 잔액 정보. 미수금 추적의 핵심 테이블</td></tr>
+                <tr><td><strong>AR_CASH_RECEIPTS_ALL</strong></td><td><span class="badge" style="background:#dcfce7;color:#166534;">수금</span></td><td>고객 수금 헤더 정보 (수금일, 금액, 통화, 수금 방법)</td></tr>
+                <tr><td><strong>AR_CASH_RECEIPT_HISTORY_ALL</strong></td><td><span class="badge" style="background:#dcfce7;color:#166534;">수금</span></td><td>수금의 상태 변경 이력 (Confirmed, Reversed 등)</td></tr>
+                <tr><td><strong>AR_RECEIVABLE_APPLICATIONS_ALL</strong></td><td><span class="badge" style="background:#dcfce7;color:#166534;">수금</span></td><td>수금과 인보이스 간 적용(Apply) 정보. 대사 결과 저장</td></tr>
+                <tr><td><strong>HZ_PARTIES</strong></td><td><span class="badge" style="background:#fef9c3;color:#713f12;">고객</span></td><td>고객, 공급업체 등 모든 비즈니스 파티의 기본 정보</td></tr>
+                <tr><td><strong>HZ_CUST_ACCOUNTS</strong></td><td><span class="badge" style="background:#fef9c3;color:#713f12;">고객</span></td><td>AR 고객 계정 정보. HZ_PARTIES와 연결</td></tr>
+                <tr><td><strong>HZ_CUST_SITE_USES_ALL</strong></td><td><span class="badge" style="background:#fef9c3;color:#713f12;">고객</span></td><td>고객 사이트 용도 (Bill-To, Ship-To 등) 구분 정보</td></tr>
+                <tr><td><strong>XLA_AE_HEADERS / XLA_AE_LINES</strong></td><td><span class="badge" style="background:#fce7f3;color:#831843;">회계</span></td><td>SLA(Sub-Ledger Accounting) 분개 엔트리. GL 전기 전 회계 데이터</td></tr>
+                <tr><td><strong>GL_JE_HEADERS / GL_JE_LINES</strong></td><td><span class="badge" style="background:#ede9fe;color:#4c1d95;">GL</span></td><td>총계정원장 분개 데이터. XLA에서 GL로 전송된 최종 회계 정보</td></tr>
+                <tr><td><strong>AR_ADJUSTMENTS</strong></td><td><span class="badge" style="background:#dcfce7;color:#166534;">수금</span></td><td>소액 차이, 환율 차이 등 AR 잔액 조정 정보</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+function goHome() {
+  showPage('home-page');
+  document.querySelectorAll('.nav-parent').forEach(p => p.classList.remove('active'));
+  document.querySelector('.nav-parent').classList.add('active');
+  document.querySelectorAll('.nav-child').forEach(c => c.classList.remove('active'));
+  document.querySelector('.nav-child').classList.add('active');
+}
+
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  var target = document.getElementById(id);
+  if (target) target.classList.add('active');
+  if (el) {
+    document.querySelectorAll('.nav-child').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+  }
+  window.scrollTo(0, 0);
+}
+
+function toggleNav(el, pageId) {
+  var children = el.nextElementSibling;
+  var isOpen = children && children.classList.contains('open');
+  document.querySelectorAll('.nav-children').forEach(c => c.classList.remove('open'));
+  document.querySelectorAll('.nav-parent').forEach(p => p.classList.remove('open', 'active'));
+  if (!isOpen && children) {
+    children.classList.add('open');
+    el.classList.add('open', 'active');
+  }
+  if (pageId) showPage(pageId);
+}
+
+// Init: open first group
+document.querySelector('.nav-parent').classList.add('open', 'active');
+</script>
+</body>
+</html>
